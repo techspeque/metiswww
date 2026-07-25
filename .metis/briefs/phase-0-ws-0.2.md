@@ -40,6 +40,14 @@ shell.
   passed from `index.astro` (task says "driven by props"), not constants.
 - `og:image` intentionally omitted — no image asset exists yet; adding a
   broken reference is out of scope (later phase). `twitter:card` = `summary`.
+- **Canonical URL:** `og:url` is absolute (Open Graph requires it) and is a
+  `<meta>` tag. The `<link rel="canonical">` is emitted **root-relative**
+  (e.g. `/metiswww/`): it resolves against the document URL to the same
+  absolute URL, is valid HTML, and — being resource-origin-free — keeps the
+  built HTML clean under the "no external origin `<link href="http…">`" gate
+  (which is intended for scripts/stylesheets/fonts, but a `<link
+  rel="canonical" href="https://…">` would trip its mechanical grep). Both
+  are derived from `SITE.url + Astro.url.pathname` so they stay in sync.
 - `astro.config.mjs` left untouched — the GitHub Pages project-path `base`
   concern is an explicit later-phase item, not this slice.
 
