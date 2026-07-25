@@ -35,12 +35,12 @@ these tokens to already exist.
 ## Declared file scope
 
 - **owned_paths:**
-  - `src/styles/tokens.css`
-  - `src/styles/global.css`
+  - src/styles/tokens.css
+  - src/styles/global.css
 - **read_only_paths:**
-  - `OVERVIEW.md` (design constraints §3.2, invariants §3.4)
-  - `.metis/plans/phase-0.md` (§0.1 acceptance criteria)
-  - `src/pages/index.astro` (context only; not modified — 0.2/0.3 own it)
+  - OVERVIEW.md (design constraints §3.2, invariants §3.4)
+  - .metis/plans/phase-0.md (§0.1 acceptance criteria)
+  - src/pages/index.astro (context only; not modified — 0.2/0.3 own it)
 
 ## Definition of Done
 
