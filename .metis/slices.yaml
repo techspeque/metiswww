@@ -10,7 +10,7 @@ slices:
       reviewer: claude-code/sonnet
       plan: .metis/plans/phase-0.md
       plan_section: §0.2
-      coded: false
+      coded: true
       reviewed: false
       review_cycles: 0
       created: ""
