@@ -1,19 +1,5 @@
 version: 1
 slices:
-    - id: phase-0-ws-0.1
-      title: Design token system and global styles
-      type: feat
-      priority: p2
-      risk: medium
-      stage: foundation
-      coder: claude-code/opus
-      reviewer: claude-code/sonnet
-      plan: .metis/plans/phase-0.md
-      plan_section: §0.1
-      coded: true
-      reviewed: true
-      review_cycles: 0
-      created: ""
     - id: phase-0-ws-0.2
       title: Base layout, fonts, and metadata
       type: feat
@@ -55,7 +41,6 @@ slices:
       reviewed: false
       review_cycles: 0
       blocked_by:
-        - phase-0-ws-0.1
         - phase-0-ws-0.2
         - phase-0-ws-0.3
       created: ""
