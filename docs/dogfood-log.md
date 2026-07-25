@@ -21,3 +21,8 @@ Feeds back into metis hardening. Session: 2026-07-25, metis v0.0.5.
 12. "Cross-vendor" label misleading for same-vendor/different-model pairs (second report of #2 — recurring)
 13. Empty AGENTS.md sections ("(None configured)") read as unconstrained; reviewer had to infer the checklist from OVERVIEW §7 — init could seed review_checklist from the OVERVIEW
 14. Undocumented: `metis brief <id>` remains readable after archive (works; just not stated)
+
+## From the ws-0.2 coder session
+15. `metis commit -m` doesn't auto-stage — fails with a raw git "nothing staged" error; needs a hint or scoped-add option
+16. Brief re-commits produce identical canned subjects (`docs(id): slice brief` twice) — no message override or amend path
+17. `metis brief <id>` fails with "slice not found" for ARCHIVED slices even though the brief file exists — breaks the documented seam-reading/archaeology path exactly when slices complete (contradicts #14, which was observed pre-archive)
