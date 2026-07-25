@@ -26,3 +26,7 @@ Feeds back into metis hardening. Session: 2026-07-25, metis v0.0.5.
 15. `metis commit -m` doesn't auto-stage — fails with a raw git "nothing staged" error; needs a hint or scoped-add option
 16. Brief re-commits produce identical canned subjects (`docs(id): slice brief` twice) — no message override or amend path
 17. `metis brief <id>` fails with "slice not found" for ARCHIVED slices even though the brief file exists — breaks the documented seam-reading/archaeology path exactly when slices complete (contradicts #14, which was observed pre-archive)
+
+## From the ws-0.2 reviewer session
+18. Empty review_checklist reported again — third occurrence of the #13 pattern; RECURRING, promote a fix (init should seed it from OVERVIEW)
+19. `metis log --validate -o json` lacks first/last commit fields — reviewers reconstruct the commit range by hand for manual audits
