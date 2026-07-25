@@ -37,3 +37,7 @@ Feeds back into metis hardening. Session: 2026-07-25, metis v0.0.5.
 ## From the ws-0.3 reviewer session
 21. No advisory-finding channel — `metis block` is the only findings write path and it forces a rework cycle; non-blocking observations (e.g. a landmark trade-off forced by the plan) have no durable structured record
 22. `metis verify` prints only ALL GREEN/exit code — not citable as review evidence; reviewers shell out to the underlying command for detail (a --show-output flag would help)
+
+## From the phase-0-gate coder session
+23. `metis brief --write` emits the generic code-slice template for gate slices — the gate.md template exists but isn't selected by slice type (brief.Render has a gate branch; investigate why the generic body appeared)
+24. `verify --post` semantics awkward for gates (no product code changed) — flip precondition forces a re-run that validates nothing new; gate-type slices may deserve a different precondition (evidence report exists?)
