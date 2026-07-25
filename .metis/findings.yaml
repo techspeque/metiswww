@@ -1,1 +1,8 @@
-findings: []
+findings:
+    - id: f-001
+      date: "2026-07-25"
+      slice: phase-0-gate
+      severity: P3
+      category: protocol
+      finding: 'Gate report (.metis/briefs/phase-0-gate.md) provides no evidence for the OVERVIEW.md §3.4 invariant ''All copy about metis behavior must match the real CLI.'' The report evidences 4 of 5 §3.4 invariants (verify green, zero client JS, WCAG AA + both schemes styled, prefers-reduced-motion) but is silent on copy accuracy. Independent check confirms the placeholder copy in all six section components makes no CLI-behavior claims (no command output, no flags), so the invariant is vacuously satisfied today -- but the report should say so explicitly, the way it already documents the ADR prerequisite as ''vacuously satisfied'' in §1. Fix: add one line/row to the gate report (e.g. in §2 or §4) stating the copy-accuracy invariant was checked and holds vacuously (no CLI claims in placeholder copy yet); re-flip once added. This is a documentation-completeness gap, not a defect in the underlying build -- all re-run composition scenarios (clean build, token closure, built-output structure, all 8 WCAG ratio recomputations) independently reproduced exactly.'
+      status: open
