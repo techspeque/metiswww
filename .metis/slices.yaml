@@ -1,19 +1,5 @@
 version: 1
 slices:
-    - id: phase-0-ws-0.3
-      title: Page skeleton with placeholder sections
-      type: feat
-      priority: p2
-      risk: low
-      stage: foundation
-      coder: claude-code/opus
-      reviewer: claude-code/sonnet
-      plan: .metis/plans/phase-0.md
-      plan_section: §0.3
-      coded: true
-      reviewed: true
-      review_cycles: 0
-      created: ""
     - id: phase-0-gate
       title: 'Phase 0 gate: composed-system validation'
       type: gate
@@ -26,6 +12,4 @@ slices:
       coded: false
       reviewed: false
       review_cycles: 0
-      blocked_by:
-        - phase-0-ws-0.3
       created: ""
