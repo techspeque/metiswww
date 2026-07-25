@@ -30,3 +30,6 @@ Feeds back into metis hardening. Session: 2026-07-25, metis v0.0.5.
 ## From the ws-0.2 reviewer session
 18. Empty review_checklist reported again — third occurrence of the #13 pattern; RECURRING, promote a fix (init should seed it from OVERVIEW)
 19. `metis log --validate -o json` lacks first/last commit fields — reviewers reconstruct the commit range by hand for manual audits
+
+## From the ws-0.3 coder session
+20. Scope granularity undefined — plan suggests directories (`src/components/`), validation matches files; template should state whether owned_paths entries are dirs or files (both work via prefix match, but agents can't know that)
