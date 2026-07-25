@@ -123,6 +123,31 @@ a fully-themed, zero-JS single page.
 - **Verdict:** pass
 - **Evidence:** grep on `dist/_astro/index.CidyUgey.css`.
 
+### Scenario 5: Copy accuracy — no aspirational CLI claims in placeholder copy
+
+- **Setup:** the six section components (`src/components/*.astro`) that carry
+      all page copy.
+- **Action:** read every component and grep the copy for CLI commands, flags,
+      shell prompts, and command-output blocks
+      (`grep -rEn 'metis [a-z]|npm |--[a-z]|\$ |\`\`\`|<code|<pre' src/components`).
+- **Expected:** per OVERVIEW.md §3.4, "commands shown on the site must exist
+      with the shown flags — no aspirational output." The Phase-0 skeleton is
+      placeholder copy, so the honest expectation is that it shows *no* CLI
+      commands or output at all.
+- **Actual:** all copy is placeholder prose — Hero (`metis` / "The
+      meta-harness that keeps AI coding agents on task."), Problem, Personas,
+      Protocol, Install, and Footer each carry only a heading plus a "Placeholder
+      for …" line. No component renders a command, flag, shell prompt, or
+      command-output block; the grep's only hits are CSS custom properties
+      (`--space-*`, `border-bottom`) inside `<style>`, not copy. The Hero
+      tagline describes what metis is; it makes no CLI-behavior claim.
+- **Verdict:** pass — **vacuously satisfied.** No CLI claims exist in the
+      placeholder copy yet, so there is nothing that could diverge from the real
+      CLI. Phase 1 introduces the real commands (typed terminal, install
+      one-liner, lifecycle labels) and re-arms this invariant as a live check.
+- **Evidence:** full read of `src/components/*.astro`; grep above (zero copy
+      hits).
+
 ---
 
 ## 3. Interface Seam Verification
