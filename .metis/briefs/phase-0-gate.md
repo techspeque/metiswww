@@ -128,19 +128,20 @@ a fully-themed, zero-JS single page.
 - **Setup:** the six section components (`src/components/*.astro`) that carry
       all page copy.
 - **Action:** read every component and grep the copy for CLI commands, flags,
-      shell prompts, and command-output blocks
-      (`grep -rEn 'metis [a-z]|npm |--[a-z]|\$ |\`\`\`|<code|<pre' src/components`).
+      shell prompts, fenced blocks, and `<code>`/`<pre>` elements
+      (`grep -rEn` over `src/components` for `metis <word>`, `npm `, `--<flag>`,
+      a `$` prompt, a triple-backtick fence, `<code`, `<pre`).
 - **Expected:** per OVERVIEW.md §3.4, "commands shown on the site must exist
       with the shown flags — no aspirational output." The Phase-0 skeleton is
       placeholder copy, so the honest expectation is that it shows *no* CLI
       commands or output at all.
-- **Actual:** all copy is placeholder prose — Hero (`metis` / "The
-      meta-harness that keeps AI coding agents on task."), Problem, Personas,
-      Protocol, Install, and Footer each carry only a heading plus a "Placeholder
-      for …" line. No component renders a command, flag, shell prompt, or
-      command-output block; the grep's only hits are CSS custom properties
-      (`--space-*`, `border-bottom`) inside `<style>`, not copy. The Hero
-      tagline describes what metis is; it makes no CLI-behavior claim.
+- **Actual:** all copy is placeholder prose — Hero carries a heading (`metis`)
+      plus a tagline ("The meta-harness that keeps AI coding agents on task.");
+      Problem, Personas, Protocol, Install, and Footer each carry a heading plus
+      a "Placeholder for …" line. No component renders a command, flag, shell
+      prompt, or command-output block; the grep's only hits are CSS custom
+      properties (`--space-*`, `border-bottom`) inside `<style>`, not copy. The
+      Hero tagline describes what metis is; it makes no CLI-behavior claim.
 - **Verdict:** pass — **vacuously satisfied.** No CLI claims exist in the
       placeholder copy yet, so there is nothing that could diverge from the real
       CLI. Phase 1 introduces the real commands (typed terminal, install
