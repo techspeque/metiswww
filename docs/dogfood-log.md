@@ -33,3 +33,7 @@ Feeds back into metis hardening. Session: 2026-07-25, metis v0.0.5.
 
 ## From the ws-0.3 coder session
 20. Scope granularity undefined — plan suggests directories (`src/components/`), validation matches files; template should state whether owned_paths entries are dirs or files (both work via prefix match, but agents can't know that)
+
+## From the ws-0.3 reviewer session
+21. No advisory-finding channel — `metis block` is the only findings write path and it forces a rework cycle; non-blocking observations (e.g. a landmark trade-off forced by the plan) have no durable structured record
+22. `metis verify` prints only ALL GREEN/exit code — not citable as review evidence; reviewers shell out to the underlying command for detail (a --show-output flag would help)
