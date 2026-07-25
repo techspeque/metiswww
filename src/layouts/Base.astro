@@ -1,0 +1,99 @@
+---
+/**
+ * Base layout — the HTML shell every page renders through.
+ * Handles document head: title/description (props), canonical + Open Graph /
+ * Twitter metadata, theme-color for both color schemes, favicons, self-hosted
+ * font preloads, and the token → fonts → global stylesheet cascade.
+ *
+ * Zero client-side JS (OVERVIEW.md §3.1, §3.4).
+ */
+import { SITE, THEME_COLOR } from "../consts";
+
+// Import order is load order: tokens define the fallback font stacks, fonts
+// enriches them with the real faces, global consumes the resulting tokens.
+import "../styles/tokens.css";
+import "../styles/fonts.css";
+import "../styles/global.css";
+
+interface Props {
+  /** Document title — appears in <title> and og:title. */
+  title: string;
+  /** Meta description — appears in <meta name="description"> and og:description. */
+  description: string;
+}
+
+const { title, description } = Astro.props;
+
+// Concatenate onto SITE.url (rather than using it as a URL base) so the
+// project path segment in SITE.url is preserved instead of being replaced by
+// the absolute pathname.
+const pageUrl = new URL(SITE.url + Astro.url.pathname);
+// og:url must be absolute (Open Graph spec).
+const canonical = pageUrl.href;
+// The rel="canonical" link is emitted root-relative: it resolves against the
+// document URL to the same absolute URL, keeps the built HTML free of any
+// external-origin <link href="http…"> (a resource-origin acceptance gate), and
+// stays correct without hardcoding the origin.
+const canonicalPath = pageUrl.pathname;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalPath} />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonical} />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+
+    <!-- Browser UI theme color, per scheme (values mirror tokens.css) -->
+    <meta
+      name="theme-color"
+      media="(prefers-color-scheme: dark)"
+      content={THEME_COLOR.dark}
+    />
+    <meta
+      name="theme-color"
+      media="(prefers-color-scheme: light)"
+      content={THEME_COLOR.light}
+    />
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+
+    <!-- Preload self-hosted variable fonts (same-origin; crossorigin required
+         for font fetches even when same-origin) -->
+    <link
+      rel="preload"
+      href="/fonts/space-grotesk-variable.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="/fonts/jetbrains-mono-variable.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+
+    <meta name="generator" content={Astro.generator} />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

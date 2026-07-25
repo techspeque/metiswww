@@ -1,17 +1,17 @@
 ---
+/**
+ * Home page. For slice 0.2 this is a minimal shell that exercises the base
+ * layout, fonts, and metadata; the real section skeleton lands in slice 0.3.
+ */
+import Base from "../layouts/Base.astro";
 
+const title = "metis — the meta-harness for AI coding agents";
+const description =
+  "metis governs AI coding agents with a disciplined protocol: one slice at a time, file scope as a contract, and cross-vendor review — so scope creep, self-review, and lost context stop happening.";
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<Base title={title} description={description}>
+  <main>
+    <h1>metis</h1>
+  </main>
+</Base>

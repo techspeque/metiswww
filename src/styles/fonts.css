@@ -1,0 +1,40 @@
+/* =============================================================================
+   metiswww — Self-hosted fonts
+   Two OFL 1.1 families, latin-subset variable woff2, served from /public/fonts.
+   No third-party font CDN (OVERVIEW.md §3.1, §3.4).
+
+   This layer sits ABOVE tokens.css in import order. tokens.css owns
+   --font-display / --font-mono as the fallback contract (system stacks); the
+   :root block at the bottom of this file ENRICHES those same two tokens via
+   the cascade — prepending the real family ahead of the original fallback so
+   the swap degrades gracefully (both faces match their fallback category).
+   ============================================================================= */
+
+/* Display / text face — Space Grotesk (variable, wght 300–700). */
+@font-face {
+  font-family: "Space Grotesk";
+  src: url("/fonts/space-grotesk-variable.woff2") format("woff2");
+  font-weight: 300 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Mono face — JetBrains Mono (variable, wght 100–800). Terminal/code copy is
+   a first-class design element, so the full weight axis is kept available. */
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("/fonts/jetbrains-mono-variable.woff2") format("woff2");
+  font-weight: 100 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Enrich the token-layer font stacks with the real faces (cascade override of
+   tokens.css :root). Fallbacks mirror the tokens.css contract so a missing or
+   still-loading face falls back within the same category. */
+:root {
+  --font-display: "Space Grotesk", ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code",
+    Menlo, Consolas, "Liberation Mono", monospace;
+}
