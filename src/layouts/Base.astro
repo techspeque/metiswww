@@ -5,7 +5,88 @@
  * Twitter metadata, theme-color for both color schemes, favicons, self-hosted
  * font preloads, and the token → fonts → global stylesheet cascade.
  *
- * Zero client-side JS (OVERVIEW.md §3.1, §3.4).
+ * Client-side JS: one script, the pre-paint theme script below (ADR-0007).
+ * The other sanctioned script — the ADR-0005 reveal observer — lives in
+ * src/pages/index.astro. Two inline scripts site-wide, no others, no
+ * libraries (OVERVIEW.md §3.1, §3.4 as amended by ADR-0007).
+ *
+ * --- The manual scheme toggle (phase-2-ws-2.6, ADR-0007) -----------------
+ *
+ * tokens.css owns the cascade half of this feature: dark on `:root`, light in
+ * a `prefers-color-scheme: light` media query, and two `:root[data-theme=…]`
+ * blocks at higher specificity that let an explicit choice beat the OS in
+ * both directions. This file owns the other half — the state, and the control
+ * that sets it.
+ *
+ * The script, expanded (it is written hand-minified on one line below because
+ * `is:inline` content is passed through verbatim and never minified):
+ *
+ *   (function () {
+ *     var d = document, r = d.documentElement, K = "theme";
+ *     // Effective scheme: the explicit choice if there is one, else the OS.
+ *     var cur = function () {
+ *       return r.getAttribute("data-theme") ||
+ *         (matchMedia("(prefers-color-scheme:light)").matches ? "light" : "dark");
+ *     };
+ *     // Reveal the control and put its state in sync with the scheme.
+ *     var sync = function () {
+ *       var b = d.querySelector("[data-theme-toggle]");
+ *       if (b) {
+ *         var light = cur() == "light";
+ *         b.hidden = false;
+ *         b.setAttribute("aria-pressed", light);
+ *         b.setAttribute("aria-label",
+ *           light ? "Switch to dark theme" : "Switch to light theme");
+ *       }
+ *     };
+ *     var stored;
+ *     try { stored = localStorage.getItem(K); } catch (e) {}
+ *     if (stored == "light" || stored == "dark")
+ *       r.setAttribute("data-theme", stored);
+ *     d.addEventListener("click", function (e) {
+ *       if (e.target.closest?.("[data-theme-toggle]")) {
+ *         var next = cur() == "light" ? "dark" : "light";
+ *         r.setAttribute("data-theme", next);
+ *         try { localStorage.setItem(K, next); } catch (e) {}
+ *         sync();
+ *       }
+ *     });
+ *     d.addEventListener("DOMContentLoaded", sync);
+ *   })();
+ *
+ * Why it is shaped this way:
+ *
+ *   - It runs in <head>, before the stylesheet link Astro appends at the end
+ *     of <head>, so `data-theme` is on <html> before the first paint. That
+ *     ordering is the whole point: read it late and the visitor sees a flash
+ *     of the OS scheme before their choice applies.
+ *   - Both localStorage calls are wrapped. Private mode and storage-disabled
+ *     browsers throw on access; ADR-0007 requires that to degrade to plain
+ *     OS-preference behavior, never to a broken page. One key, `theme`, on
+ *     the visitor's own device — no cookies, nothing transmitted (§5).
+ *   - Only the two literals `"light"` and `"dark"` are honored; a hand-edited
+ *     or stale value leaves the attribute unset, i.e. OS behavior.
+ *   - The click listener is delegated on `document` so it can be attached
+ *     from <head>, before the button it serves exists. `closest?.` guards the
+ *     case where the event target is not an Element.
+ *   - `sync()` runs on DOMContentLoaded because the button is not parsed yet
+ *     when this script executes. It is also what un-hides the button: the
+ *     control ships with `hidden`, so a no-JS visitor never sees a dead one.
+ *   - Both accessible labels appear as whole literals rather than being
+ *     concatenated, so each is greppable verbatim in the built HTML against
+ *     docs/copy.md §ThemeToggle.
+ *   - `aria-pressed` is defined as "the light scheme is active". Pairing a
+ *     pressed state with an action-phrased label is an acknowledged ARIA
+ *     tension (a screen reader says "Switch to dark theme, pressed"), but
+ *     ADR-0007 mandates syncing `aria-pressed` and the label wording is fixed
+ *     by the copy deck; one consistent definition is the best available
+ *     reading, and it is stated here so it is not re-litigated per review.
+ *   - `<meta name="theme-color">` stays media-query-driven. Under a manual
+ *     override browser chrome may follow the OS instead — accepted in
+ *     ADR-0007's consequences rather than paid for out of the script budget.
+ *
+ * Budget: ≤ 768 bytes in dist (ADR-0007 gate), measured the way the phase-1
+ * gate measured the observer — inner text and whole element both reported.
  */
 import { SITE, THEME_COLOR } from "../consts";
 
@@ -42,6 +123,11 @@ const canonicalPath = pageUrl.pathname;
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- Pre-paint theme state (ADR-0007) — rationale in the frontmatter above.
+         Placed here so it runs before the stylesheet Astro appends at the end
+         of <head>: the attribute must be on <html> before the first paint. -->
+    <script is:inline>(function(){var d=document,r=d.documentElement,K="theme",c=function(){return r.getAttribute("data-theme")||(matchMedia("(prefers-color-scheme:light)").matches?"light":"dark")},s=function(){var b=d.querySelector("[data-theme-toggle]");if(b){var l=c()=="light";b.hidden=!1;b.setAttribute("aria-pressed",l);b.setAttribute("aria-label",l?"Switch to dark theme":"Switch to light theme")}},t;try{t=localStorage.getItem(K)}catch(e){}if(t=="light"||t=="dark")r.setAttribute("data-theme",t);d.addEventListener("click",function(e){if(e.target.closest?.("[data-theme-toggle]")){var n=c()=="light"?"dark":"light";r.setAttribute("data-theme",n);try{localStorage.setItem(K,n)}catch(e){}s()}});d.addEventListener("DOMContentLoaded",s)})()</script>
 
     <title>{title}</title>
     <meta name="description" content={description} />
@@ -94,6 +180,106 @@ const canonicalPath = pageUrl.pathname;
     <meta name="generator" content={Astro.generator} />
   </head>
   <body>
+    <div class="theme-bar">
+      <button
+        type="button"
+        class="theme-toggle"
+        data-theme-toggle
+        aria-pressed="false"
+        aria-label="Switch to light theme"
+        hidden></button>
+    </div>
     <slot />
   </body>
 </html>
+
+<style>
+  /* --- Manual scheme toggle (phase-2-ws-2.6, ADR-0007) --------------------
+
+     ADR-0007 requires "no layout shift when the button un-hides — reserve its
+     box". The bar is taken out of flow instead, which is the stronger
+     guarantee of the same property: an absolutely positioned box contributes
+     nothing to layout at any point, so there is no shift to reserve against
+     whether the button is hidden, revealed, or never revealed at all (no-JS).
+     Reserving an in-flow box would have met the rule too, at the cost of
+     ~48px of dead space above the hero for every visitor including the ones
+     who never get the control.
+
+     The containing block is the initial one (nothing between here and the
+     root establishes another), so the bar is anchored to the top of the
+     document and scrolls away with the hero — the "top-of-page toggle" of
+     OVERVIEW §3.2. Its own box repeats index.astro's container rules so the
+     button lines up with the right edge of the page's content column instead
+     of the viewport.
+
+     Deliberately not wrapped in <header>: that would add a `banner` landmark
+     the page does not otherwise have, which is outside this slice's brief and
+     would be an empty landmark for no-JS visitors. The button is the only
+     content out here and it is hidden until scripted.
+
+     It sits above the hero's --space-8 top padding, so it cannot overlap the
+     headline; `pointer-events` keeps the bar's full-width box from
+     intercepting anything that passes under it regardless. */
+  .theme-bar {
+    position: absolute;
+    inset-block-start: var(--space-4);
+    inset-inline: 0;
+    max-inline-size: var(--container-max);
+    margin-inline: auto;
+    padding-inline: var(--space-4);
+    display: flex;
+    justify-content: flex-end;
+    pointer-events: none;
+  }
+
+  /* 32px box — above the 24px WCAG 2.5.8 target minimum. No visible text
+     label: the affordance is the two-tone disc sanctioned by docs/copy.md
+     §ThemeToggle, and the accessible name is carried by aria-label. */
+  .theme-toggle {
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: var(--space-5);
+    block-size: var(--space-5);
+    padding: var(--space-0);
+    border: none;
+    border-radius: 50%;
+    background: none;
+    cursor: pointer;
+  }
+
+  /* `hidden` is the no-JS state and must survive the display rule above. */
+  .theme-toggle[hidden] {
+    display: none;
+  }
+
+  /* The disc: a ring, half filled. It needs no aria-hiding — a pseudo-element
+     has no accessibility presence. --color-muted against --color-bg is
+     8.39:1 dark / 5.66:1 light (tokens.css ratio table), comfortably past the
+     3:1 AA minimum for non-text UI, and it inverts with the scheme, which is
+     the feedback for the press. */
+  .theme-toggle::before {
+    content: "";
+    inline-size: var(--space-4);
+    block-size: var(--space-4);
+    border: 1px solid var(--color-muted);
+    border-radius: 50%;
+    background-image: linear-gradient(
+      to right,
+      var(--color-muted) 0 50%,
+      transparent 50% 100%
+    );
+    transition: border-color var(--duration-fast) var(--ease-out);
+  }
+
+  .theme-toggle:hover::before {
+    border-color: var(--color-text);
+  }
+
+  /* global.css rounds every focus ring to --radius; on a circular control
+     that reads as a mistake. Same properties, matching shape. */
+  .theme-toggle:focus-visible {
+    border-radius: 50%;
+  }
+</style>

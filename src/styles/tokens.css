@@ -118,7 +118,12 @@
 
 /* --- Semantic color tokens — LIGHT override --------------------------------
    Overrides the SAME semantic properties defined dark-first on :root. Type
-   and spacing tokens are scheme-independent and intentionally not repeated. */
+   and spacing tokens are scheme-independent and intentionally not repeated.
+
+   BOUND COPY (ADR-0007): this block and `:root[data-theme="light"]` below are
+   two copies of one light scheme — the OS-driven one and the manual-override
+   one. Editing one without the other is a review finding. Any change here
+   must be mirrored there, property for property. */
 @media (prefers-color-scheme: light) {
   :root {
     --color-bg: var(--parchment);
@@ -133,4 +138,50 @@
     --color-selection-text: var(--ink);
     --color-focus-ring: var(--gold-deep);
   }
+}
+
+/* --- Manual scheme override (ADR-0007) -------------------------------------
+   The two blocks below express the visitor's explicit choice, set as
+   `data-theme` on <html> by the pre-paint script in Base.astro. Their
+   specificity is (0,2,0) — an attribute selector on top of the pseudo-class —
+   which beats the (0,1,0) of `:root` inside the media query above, so a manual
+   choice wins in BOTH directions: light-on-a-dark-OS and dark-on-a-light-OS.
+
+   With no `data-theme` attribute present neither block matches and the cascade
+   is exactly what it was before this ADR: dark by default, light under
+   `prefers-color-scheme: light`. That is what a no-JS visitor gets.
+
+   Only the semantic color tokens are repeated; the raw brand palette, type and
+   spacing tokens are scheme-independent and stay on `:root`. */
+
+/* Manual dark — mirrors the dark defaults on `:root` above. */
+:root[data-theme="dark"] {
+  --color-bg: var(--ink);
+  --color-surface: var(--ink-surface);
+  --color-text: var(--parchment);
+  --color-muted: var(--ink-muted);
+  --color-border: var(--ink-border);
+  --color-accent: var(--owl-gold);
+  --color-accent-strong: var(--owl-gold);
+  --color-secondary: var(--aegean);
+  --color-selection-bg: var(--owl-gold);
+  --color-selection-text: var(--ink);
+  --color-focus-ring: var(--owl-gold);
+}
+
+/* Manual light — BOUND COPY (ADR-0007) of the `prefers-color-scheme: light`
+   block above. Same eleven properties, same values, same contrast ratios (see
+   the LIGHT rows of the ratio table). Edit the two together, always. */
+:root[data-theme="light"] {
+  --color-bg: var(--parchment);
+  --color-surface: var(--parchment-raised);
+  --color-text: var(--ink);
+  --color-muted: var(--parchment-muted);
+  --color-border: var(--parchment-border);
+  --color-accent: var(--gold-deep);
+  --color-accent-strong: var(--gold-deep);
+  --color-secondary: var(--aegean-deep);
+  --color-selection-bg: var(--owl-gold);
+  --color-selection-text: var(--ink);
+  --color-focus-ring: var(--gold-deep);
 }
