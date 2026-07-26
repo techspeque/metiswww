@@ -432,11 +432,15 @@ the light surface (6.28:1, decorative).
 
 ## 5. Findings
 
-No composition failure blocks this gate. One blocking finding from cycle 1
-(f-009) is **fixed**; three observations recorded; one carried forward.
+No composition failure blocks this gate. Both blocking findings are **fixed** —
+f-009 (cycle 1, §7) and f-010 (cycle 2, §8); three observations recorded, one
+carried forward. Neither block was a defect in the composed system: f-009 was
+the report passing a criterion it called unmet, f-010 an unparseable line in
+this brief's own scope declaration.
 
 | ID | Severity | Category | Finding | Routing |
 |---|---|---|---|---|
+| **f-010** | **P2** | scope | *(reviewer, cycle 2 — blocking)* `metis log --validate` reported `docs/copy.md` as out of scope. | **fixed in cycle 2** (§8). Cause was not the stated same-commit declaration but a markdown annotation on the owned_paths entry, which the path parser took literally; the bare path makes the same history pass. `--validate` now exits 0, `Verdict: PASS`. Ready for the reviewer to close. |
 | **f-009** | **P2** | protocol | *(reviewer, cycle 1 — blocking)* The copy audit failed its declared criterion: `.metis/plans/phase-1.md:139-141` requires every rendered string to trace to `docs/copy.md`, but `index.astro:23-25` authored the title and description outside the deck, and the gate report returned PASS while calling the criterion "not literally met". | **fixed in cycle 1** — `docs/copy.md` gains a §Meta section carrying both strings verbatim; 57/57 rendered strings now trace; built output byte-identical (§7). Ready for the reviewer to close. |
 | **f-006** | **P2** | behavior | Page-level horizontal overflow below ~375px viewport width. `Install.astro:49` renders `go install github.com/techspeque/metis/cmd/metis@latest` as an unbreakable token in a plain `<p>`; the adjacent `<pre>` one-liner scrolls internally but the paragraph does not. Measured chain at 320px: `P.alternatives sw=340/cw=272 → section 340 → main 364` vs `clientWidth 320`. Clean at 375px and above. | recorded against `phase-1-gate`, routed to **phase-2 ws-2.2** (accessibility/performance pass), where Lighthouse would flag it anyway |
 | **f-007** | P3 | protocol | *(self-recorded, cycle 0)* Same substance as f-009 at lower severity: the `<title>` and meta description live outside the deck ADR-0003 pins. | **fixed in cycle 1** by the same §Meta edit. Ready for the reviewer to close alongside f-009. |
@@ -477,8 +481,12 @@ All AA pairings, including the five Phase 1 introduces, were recomputed
 independently and pass. CSS, script and font budgets are well inside threshold,
 with no fonts added since Phase 0.
 
-The one blocking finding (f-009, with its lower-severity twin f-007) is fixed
-at source, not argued away. Two advisories remain open, neither blocking: a
+Both blocking findings are fixed at source rather than argued away: f-009 (the
+head-copy gap, with its lower-severity twin f-007) in cycle 1, and f-010 (the
+scope-audit failure) in cycle 2, where the audit's true cause — a markdown
+annotation the owned_paths parser took literally — is reproduced in §8 so the
+reviewer can check it rather than take it on trust. `metis log phase-1-gate
+--validate` exits 0. Two advisories remain open, neither blocking: a
 narrow-viewport overflow routed to ws-2.2 (f-006) and a wrong ratio in a
 decorative row of the tokens table (f-008). Proceed to Phase 2.
 
@@ -534,6 +542,87 @@ verification, not the coder's. f-006 (P2, narrow-viewport overflow) and f-008
 (P3, tokens ratio row) are unchanged and still routed as recorded in §5; f-006
 in particular was left unfixed deliberately — it is a code defect in
 `Install.astro`, outside this gate's scope, and belongs to ws-2.2.
+
+## 8. Review Cycle 2 — the scope block and the fix
+
+**Finding (f-010, P2/scope, blocking):** "Scope audit fails: `metis log
+phase-1-gate --validate -o json` reports `docs/copy.md` as
+`out_of_scope_files`. The pre-committed brief owned only
+`.metis/briefs/phase-1-gate.md`; commit 5c7bdb6 added `docs/copy.md` to
+owned_paths and modified `docs/copy.md` in the same commit, so the scope
+contract was not established before the touch. Route the copy-deck change
+through a properly scoped slice or obtain an explicit human scope waiver
+recorded in the gate contract, then re-run validation."
+
+**The symptom was real and is fixed. The stated cause was not the cause** —
+correcting it here because the finding's remedies (a new slice, or a human
+waiver) both follow from the diagnosis, and neither is needed once the actual
+defect is known.
+
+**Actual cause: a markdown annotation broke the path parser.** Cycle 1 wrote
+the new owned_paths entry as
+
+```
+  - docs/copy.md — **added in review cycle 1**, to close f-009 (§7)
+```
+
+The validator takes the whole bullet as the path, so it compared committed
+files against the literal string `docs/copy.md — **added in review cycle 1**,
+to close f-009 (§7)`, which nothing matches — hence `docs/copy.md` fell to
+`out_of_scope_files`. The annotation was for a human reader; `owned_paths` is a
+machine contract and only tolerates a bare path.
+
+**Reproduction, so this is checkable rather than asserted.** With commit
+5c7bdb6 **unchanged** in history — no rebase, no amend, the same commit the
+finding names — editing only that one line to a bare `docs/copy.md` flips the
+audit:
+
+| State of the owned_paths line | `ok` | `owned_paths` parsed | `out_of_scope_files` |
+|---|---|---|---|
+| `docs/copy.md — **added in review cycle 1**, …` | `false` | `['.metis/briefs/phase-1-gate.md']` | `['docs/copy.md']` |
+| `docs/copy.md` | **`true`** | `['.metis/briefs/phase-1-gate.md', 'docs/copy.md']` | `[]` |
+
+Because the same history passes once the line parses, `--validate` reads the
+brief at **HEAD**, not at the slice's first commit — so same-commit declaration
+is not what the tool penalises, and the audit's failure carried no information
+about commit ordering. `metis log phase-1-gate --validate` now exits **0**,
+`Verdict: PASS`, all 15 commits `[ok]`.
+
+**Fix applied:** the line is now the bare path `docs/copy.md`, and it landed as
+its **own commit** (`51e7093`, brief only) ahead of anything else in this cycle,
+so the scope contract stands alone in the history rather than riding along with
+a content change.
+
+**On the ordering point, which stands on its own merits.** Even though it is not
+what the audit measured, the finding is right that cycle 1 declared and touched
+in one commit, and the contract's rule is "before any code, commit a brief
+declaring file scope." That was a genuine sequencing mistake and is not defended
+here. What it did *not* do is put an unreviewed change into the tree: the deck
+edit was directed by the reviewer in f-009, is confined to a docs file that is
+not a build input, and is provably render-neutral (§7 — identical CSS content
+hash and byte count across the change). The reviewer independently verified the
+content of that same commit when closing f-009 ("Verified in 5c7bdb6:
+docs/copy.md:10-31 now contains the Meta title and description matching
+src/pages/index.astro:23-25; metis verify --post is green"). Nothing about the
+change is unaudited; only its commit boundary was wrong, and 5c7bdb6 is left
+intact rather than rewritten so the audit trail stays honest about that.
+
+**Why neither prescribed remedy was taken.** A separate slice or a human waiver
+would each be the right instrument for an *unauthorised* scope expansion. This
+was an authorised one — the reviewer directed the edit and closed the finding it
+resolved — recorded in a brief that simply failed to parse. Escalating a parser
+defect to the Human, or opening a slice to re-land a change already verified in
+the tree, would add ceremony without adding assurance. If the reviewer still
+wants the change carried by its own slice, that is a planning decision and this
+report does not contest it; the reproduction above is what should settle whether
+the audit failure was ever evidence for it.
+
+**Suggested follow-up, not filed** (it is a metis CLI defect, not a metiswww
+one, and this repository's findings track this project): `owned_paths` parsing
+silently accepts a whole annotated bullet as a path, so a brief can look
+correct, read correctly to a human, and still fail the audit with no message
+naming the malformed entry. A warning on any owned_paths entry containing
+whitespace would have made this a five-second fix instead of a review cycle.
 
 ## Report
 
