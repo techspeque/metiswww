@@ -8,9 +8,19 @@
  * ============================================================================= */
 
 /**
- * Canonical origin for absolute canonical / Open Graph URLs.
- * Default GitHub Pages project URL for v1 (OVERVIEW.md §8); a custom domain
- * lands in a later phase.
+ * Canonical site URL — the base that absolute canonical / Open Graph URLs
+ * resolve against. Default GitHub Pages project URL for v1 (OVERVIEW.md §8);
+ * a custom domain lands in a later phase.
+ *
+ * This string intentionally MIRRORS `site` + `base` in astro.config.mjs —
+ * the same documented-duplicate arrangement as THEME_COLOR below, and for
+ * the same reason: astro.config.mjs is not importable from component
+ * frontmatter, so ADR-0006 keeps this export as the single mirror.
+ *
+ * Only the **origin** is load-bearing. Base.astro resolves
+ * `Astro.url.pathname` — which already carries the base — against this
+ * value, so the path segment here is replaced rather than concatenated onto
+ * and cannot reach the output twice.
  */
 export const SITE = {
   url: "https://techspeque.github.io/metiswww",

@@ -1,0 +1,118 @@
+---
+/**
+ * 404 — the not-found page (phase-2-ws-2.3, ADR-0006).
+ *
+ * GitHub Pages serves `404.html` automatically for any path it cannot
+ * resolve, so this file needs no routing: Astro special-cases `404.astro`
+ * into `dist/404.html` at the site root, and Pages does the rest. It is the
+ * one page on the site besides index.
+ *
+ * Copy renders verbatim from docs/copy.md §NotFound (ADR-0003). Each string
+ * sits on ONE source line and is never split by an inline element, so the
+ * built output greps literally against the deck — the convention established
+ * in phase-1-ws-1.1. The terminal garnish is real CLI output and is
+ * reproduced exactly as the deck publishes it, down to the blank-backlog
+ * wording that `metis next` actually prints.
+ *
+ * The Heading and Body are held in consts rather than typed twice, because
+ * this page is the one place where the same two deck strings have to reach
+ * both the document head and the rendered body (see below). An expression
+ * emits the identical text node a literal would, so the built HTML still
+ * greps against the deck — and the two copies cannot drift apart.
+ *
+ * --- Head copy -----------------------------------------------------------
+ *
+ * Base.astro requires `title` and `description`, and §NotFound publishes no
+ * head copy of its own — §Meta names `src/pages/index.astro` and covers only
+ * that page. Finding f-002 established that <title> / og:description IS
+ * deck-governed copy, and docs/copy.md is read-only in this slice, so a
+ * §NotFound Meta block cannot be authored here. Both props therefore reuse
+ * §NotFound's own published strings verbatim: the Heading as the title, the
+ * Body as the description. Nothing is invented.
+ *
+ * --- The CTA -------------------------------------------------------------
+ *
+ * "← Back to metis" is the only internal link on the site, and the deck
+ * gives it no URL — unlike §Hero, which spells its URLs out. §NotFound's own
+ * Body ("returning to the last known good state") points it at the site
+ * home. It is built through the same base-path join Base.astro uses for its
+ * assets; a bare href="/" would leave the site under a project base path,
+ * which is exactly the class of defect ADR-0006 exists to prevent.
+ *
+ * --- No reveal -----------------------------------------------------------
+ *
+ * The ADR-0005 observer is an inline script in src/pages/index.astro and
+ * does not ship on this page, so `data-reveal` / `.reveal` here would be
+ * markup with no mechanism behind it. This page therefore carries no motion
+ * at all, which also means it has nothing for `prefers-reduced-motion` to
+ * disable. Zero scripts on this page; the site's two sanctioned ones are the
+ * theme script (inherited from Base) and the observer (index only).
+ */
+import Base from "../layouts/Base.astro";
+
+// Same join as Base.astro's asset(): trims and re-adds exactly one slash, so
+// it holds whether or not BASE_URL carries a trailing slash.
+const home = `${import.meta.env.BASE_URL.replace(/\/$/, "")}/`;
+
+// docs/copy.md §NotFound — reused as head copy, see the frontmatter note.
+const heading = "404 — no active slice here.";
+const body =
+  "This page isn't in the ledger. The dispatch algorithm suggests returning to the last known good state.";
+---
+
+<Base title={heading} description={body}>
+  <main>
+    <section class="section">
+      <h1>{heading}</h1>
+
+      <p class="body">{body}</p>
+
+      <p class="cta"><a href={home}>← Back to metis</a></p>
+
+      <!-- Garnish, not instruction: real `metis next` output for an empty
+           backlog, which is what a 404 is in ledger terms. aria-hidden would
+           be wrong (it is readable content, and it carries the page's joke),
+           so it stays in the accessibility tree as the <pre> it is. -->
+      <pre class="transcript"><code>$ metis next
+No active slices. The backlog is empty.</code></pre>
+    </section>
+  </main>
+</Base>
+
+<style>
+  /* Repeats index.astro's container rules: Astro scopes styles to the
+     elements in their own template, so a page cannot inherit another page's
+     `main` rule. Same tokens, same result. */
+  main {
+    max-width: var(--container-max);
+    margin-inline: auto;
+    padding-inline: var(--space-4);
+  }
+
+  /* The page has one section and no sibling below it, so it takes the shared
+     `padding-block` rhythm without the hairline every in-page section carries
+     to separate it from the next one. */
+  .section {
+    padding-block: var(--space-8);
+  }
+
+  /* The body copy sets the measure; the h1 inherits its size from global.css
+     and needs no override. */
+  .body {
+    max-width: 42ch;
+    margin-block-start: var(--space-4);
+    color: var(--color-muted);
+  }
+
+  .cta {
+    margin-block-start: var(--space-5);
+  }
+
+  /* Matches the hero transcript's treatment so the two terminals on the site
+     read as the same object. */
+  .transcript {
+    margin-block-start: var(--space-7);
+    padding: var(--space-4);
+    font-size: var(--text-sm);
+  }
+</style>

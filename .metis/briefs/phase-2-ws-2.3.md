@@ -239,6 +239,179 @@ Build and deployment → Source). That is a repository setting, not a file,
 so no slice can make it true. Until it is set, a push to `main` runs the
 workflow and the `deploy-pages` step fails.
 
-## Verification performed
+## Final measurement (after the changes)
 
-Filled in after implementation — see "Final measurement" below.
+All of the following ran against a clean `rm -rf dist && npm run verify`
+build of this working tree.
+
+### The acceptance grep
+
+```
+$ grep -oE '(href|src)="/[^"]*"' dist/*.html | grep -v '="/metiswww/'
+NONE
+```
+
+Run over `dist/*.html`, not just `dist/index.html`: the criterion names
+index.html but the DoD says "zero non-based root-absolute asset URLs in
+dist", and 404.html renders through the same layout. Every internal URL in
+both documents:
+
+```
+/metiswww/_astro/Base.Cyr545Ux.css     /metiswww/favicon.ico
+/metiswww/_astro/index.CpKCsDwZ.css    /metiswww/favicon.svg
+/metiswww/                             /metiswww/fonts/jetbrains-mono-variable.woff2
+                                       /metiswww/fonts/space-grotesk-variable.woff2
+```
+
+Every other href in either document is an external `https://` link to
+github.com (or the absolute canonical), which no base path affects.
+
+Built stylesheet, confirming the fonts.css measurement held after the
+config landed:
+
+```
+$ grep -o 'url([^)]*woff2[^)]*)' dist/_astro/*.css
+url(/metiswww/fonts/space-grotesk-variable.woff2)
+url(/metiswww/fonts/jetbrains-mono-variable.woff2)
+```
+
+### The canonical double-count is gone
+
+```
+index.html : <link rel="canonical" href="https://techspeque.github.io/metiswww/">
+             <meta property="og:url" content="https://techspeque.github.io/metiswww/">
+404.html   : https://techspeque.github.io/metiswww/404/
+```
+
+Compare the pre-change reproduction in §Architectural context above:
+`…/metiswww/metiswww/`.
+
+### Served under the base prefix — zero 404s
+
+`npx astro preview` (which honors `base`) on :4331, every URL either page
+references plus the files that are requested rather than linked:
+
+```
+404  /                                            ← nothing at the origin root, as expected
+200  /metiswww/                                   200  /metiswww/favicon.ico
+200  /metiswww/404.html                           200  /metiswww/favicon.svg
+200  /metiswww/robots.txt                         200  /metiswww/fonts/space-grotesk-variable.woff2
+200  /metiswww/_astro/Base.Cyr545Ux.css           200  /metiswww/fonts/jetbrains-mono-variable.woff2
+200  /metiswww/_astro/index.CpKCsDwZ.css
+```
+
+### 404 copy renders verbatim
+
+Each string `grep -F`'d against `dist/404.html`, all present:
+
+```
+OK  404 — no active slice here.
+OK  This page isn't in the ledger. The dispatch algorithm suggests returning to the last known good state.
+OK  ← Back to metis
+OK  $ metis next
+OK  No active slices. The backlog is empty.
+```
+
+Head copy, as reasoned above — the Heading and Body, unaltered:
+
+```
+<title>404 — no active slice here.</title>
+<meta name="description" content="This page isn't in the ledger. The dispatch algorithm suggests returning to the last known good state.">
+```
+
+### Index page regression: nothing changed but URLs
+
+Built the pre-slice tree (a detached worktree at the brief commit) and
+diffed its `dist/index.html` against this one, normalizing the base prefix
+and the content-hash in asset filenames. The only differences are the two
+source comments this slice rewrote — and one structural change, below.
+Every byte of rendered content, every `data-astro-cid`, both inline
+scripts, and all head metadata are identical.
+
+**The one structural change: CSS is now split into two chunks.**
+
+```
+before:  index.html → index.<hash>.css                       21070 B   (1 request)
+after:   index.html → Base.<hash>.css + index.<hash>.css      6137 + 14952 B (2 requests)
+         404.html   → Base.<hash>.css                          6137 B   (1 request)
+```
+
+This is Astro's normal chunking, triggered by a second page sharing the
+Base layout — not something this slice chose. Total bytes for index are
+within 19 B of before; the 404 pays 6 KB instead of 21 KB. The cost is one
+extra same-origin request on index, and it was measured rather than
+assumed to be free (below). No `build.inlineStylesheets` override was
+added to suppress it: it would be tuning a build default to undo a change
+that measures at zero.
+
+### Lighthouse — the phase-2 ≥95 bar still clears, on both pages
+
+Lighthouse 13.4.1 against the preview server, the same tool version
+phase-2-ws-2.2 used. Mobile and desktop presets, both pages:
+
+| | perf | a11y | best-practices | seo |
+|---|---|---|---|---|
+| index, desktop | 100 | 100 | 100 | 100 |
+| index, mobile | 100 | 100 | 100 | 100 |
+| 404, desktop | 100 | 100 | 100 | 100 |
+| 404, mobile | 100 | 100 | 100 | 100 |
+
+The extra stylesheet request cost nothing measurable, and the absolute
+canonical 2.2 introduced for SEO 100 still scores as absolute now that it
+resolves correctly under the base.
+
+### Script policy (ADR-0005 / ADR-0007), re-measured
+
+```
+index.html:  2 scripts   theme    inner 719 B / whole 736 B   (ADR-0007 budget 768)
+                         observer inner 242 B / whole 259 B   (ADR-0005 budget 1024)
+404.html:    1 script    theme only — the observer is index-only, by design
+```
+
+`dist/404.html` references no external origin at all. Reduced motion and
+no-JS need no separate check on the 404: it has no animation to disable,
+and its only scripted element is the inherited theme toggle, which stays
+`hidden` without JS exactly as it does on index.
+
+### The workflow — reviewed, not executed
+
+`actionlint` is not installed on this machine and no npm-distributed build
+of it exists, so this is a YAML parse plus a line-by-line read, and it is
+reported as that rather than as "validated". The file parses cleanly
+(`yaml.safe_load`) and resolves to: one `push` trigger on `main` plus
+`workflow_dispatch`; `contents: read` / `pages: write` / `id-token: write`;
+a `pages` concurrency group with `cancel-in-progress: false`; a `build` job
+(checkout → setup-node 22 with npm cache → `npm ci` → `npm run verify` →
+configure-pages → upload-pages-artifact of `./dist`); and a `deploy` job
+gated on `needs: build`, in the `github-pages` environment, running
+`deploy-pages`.
+
+One artifact of that parse worth naming so it is not read as a defect: a
+YAML 1.1 parser (PyYAML) resolves the `on:` key to the boolean `true`.
+GitHub's own parser does not — `on` is the documented trigger key in every
+GitHub workflow. Cosmetic, and only visible when parsing locally.
+
+The workflow cannot be executed from `dev` by construction: it triggers on
+`main` only, which is the property being asked for. Its first real run will
+be the human's dev → main merge.
+
+**The runtime prerequisite, again, because it is the difference between
+"coded" and "shipped":** Settings → Pages → Build and deployment → Source
+must be "GitHub Actions". Until it is, the Configure Pages step fails with
+"Get Pages site failed".
+
+### Verify
+
+`metis verify --post` — ALL GREEN
+(.metis/runs/phase-2-ws-2.3/verify-post.log). `git status` shows exactly
+the five declared owned_paths and nothing else.
+
+### Files changed
+
+| File | Change |
+|---|---|
+| `astro.config.mjs` | site + base (ADR-0006), with the measured consequences documented |
+| `src/layouts/Base.astro` | `asset()` helper; four asset links rebased; canonical resolves instead of concatenating |
+| `src/consts.ts` | SITE.url re-documented as the site+base mirror; value unchanged |
+| `src/pages/404.astro` | new |
+| `.github/workflows/deploy.yml` | new |
