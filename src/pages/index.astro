@@ -1,7 +1,7 @@
 ---
 /**
  * Home page — the single page for v1 (OVERVIEW.md §2.3).
- * Composes the five content sections in order inside one <main> landmark, with
+ * Composes the six content sections in order inside one <main> landmark, with
  * the Footer as a sibling of <main> rather than its last child (ADR-0004: a
  * footer nested in main never maps to the `contentinfo` landmark; phase 0's
  * "six components inside one main" criterion is superseded for Footer).
@@ -61,7 +61,7 @@
  * little way into the viewport rather than the instant it grazes the fold.
  * One consequence, stated so it is not a discovery: a section shorter than
  * 10% of the viewport height sitting flush at the very bottom of the page
- * could never intersect the shrunk root. None of the four opted-in sections
+ * could never intersect the shrunk root. None of the five opted-in sections
  * is anywhere near that short, and the last of them (Install) is followed by
  * the footer, so none sits flush at the bottom.
  *
@@ -75,6 +75,7 @@ import Hero from "../components/Hero.astro";
 import Problem from "../components/Problem.astro";
 import Personas from "../components/Personas.astro";
 import Protocol from "../components/Protocol.astro";
+import Workflow from "../components/Workflow.astro";
 import Install from "../components/Install.astro";
 import Footer from "../components/Footer.astro";
 
@@ -89,6 +90,7 @@ const description =
     <Problem />
     <Personas />
     <Protocol />
+    <Workflow />
     <Install />
   </main>
   <Footer />

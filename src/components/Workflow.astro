@@ -1,0 +1,317 @@
+---
+/**
+ * Workflow — how metis is actually driven: two terminals, a coder agent and a
+ * reviewer agent, trading four short prompts while the protocol carries the
+ * context between them.
+ *
+ * Copy is rendered verbatim from docs/copy.md §Workflow (ADR-0003: the copy
+ * deck is the single source of truth). Every copy string sits on ONE source
+ * line and is never split by an inline element, so the built output greps
+ * literally against the deck (convention from phase-1-ws-1.1, documented in
+ * 1.2 and 1.3).
+ *
+ * --- Three strings per step, not one ------------------------------------
+ *
+ * The deck publishes each step on a single markdown line carrying three
+ * distinct things: an attribution ("Terminal 1 — the coder:"), a quoted
+ * prompt, and a parenthetical caption. They render here as three sibling
+ * elements, each holding one uninterrupted text node, split only at the
+ * deck's own bold/quote/italic boundaries — never inside a string.
+ *
+ * A single text node was not available: the brief requires the prompt to read
+ * as human words and the caption to read as a caption, which needs two
+ * elements with different typography. The deck already treats separately
+ * rendered strings as separate fields elsewhere (§Personas publishes a column
+ * heading and its body as two fields; §Proof publishes each stat's value and
+ * label as two fields), so this is the deck's own convention applied to a line
+ * it happened to write compactly.
+ *
+ * The quote marks around each prompt are rendered as the real characters the
+ * deck writes. They ARE the quoted treatment the brief asks for, and copy
+ * characters on this site are never generated from CSS (the rule
+ * Problem.astro records for its em dashes).
+ *
+ * The backticked commands inside the captions and the closing line
+ * (`metis kickoff`, `metis next`, `coded`, `reviewed`) render as plain text
+ * rather than <code>: the same call Protocol.astro:27-30 made for
+ * `metis next`, Install.astro:18-22 for the `go install` line and
+ * Hero.astro:76-83 for `AGENTS.md`. A <code> element inside a sentence splits
+ * it into three text nodes and breaks the literal grep, and that is not a
+ * trade worth making for typography alone.
+ *
+ * --- Nothing here is a shell command ------------------------------------
+ *
+ * The four prompts are words a human types AT an agent. There is no `$` glyph
+ * anywhere in this section, no command line and no output block: the plan's
+ * "prompt glyph" is honoured as terminal chrome — a decorative caret bar in
+ * each card's title bar, beside the attribution — and never in front of the
+ * human words, which is exactly what would make a prompt read as a command.
+ * The captions are prose in parentheses, in the mono face because they narrate
+ * what the tool did; they are captions, not transcripts.
+ *
+ * Every CLI claim in the captions and the closing line was re-verified against
+ * metis 0.0.6 in the session that wrote this component, rather than inherited
+ * from the deck's verification note: `metis kickoff` prints the session
+ * protocol; `metis next -o json` returns ONE active-slice object, never a list
+ * (deterministic dispatch, "gets dispatched one slice"); `metis commit --help`
+ * lists `--brief`, `--flip coded|reviewed` and `--agent`, the last described
+ * as "required with --flip reviewed for cross-vendor validation" ("the final
+ * flip demands a different agent's identity"); scope and checklist auditing
+ * are `metis log <id> --validate`, `metis block` and `metis findings record`
+ * ("audits scope and the checklist, then files findings"); and kickoff step 5
+ * documents `metis verify`'s distinct exit codes 0/1/2 ("exit codes do the
+ * arguing").
+ *
+ * One deck claim is NOT verifiable from this page and is recorded as an
+ * advisory finding rather than silently rendered as true or quietly reworded:
+ * the closing line says the prompts "stay four words long", while the four
+ * prompts the deck publishes run five to seven words. docs/copy.md is
+ * read-only in this slice's scope and ADR-0003 makes the deck the only place
+ * that string may be changed, so it renders verbatim here and the fix belongs
+ * to the deck's owner.
+ *
+ * --- The staircase -------------------------------------------------------
+ *
+ * <ol> carries the order, so the exchange reads correctly with CSS disabled
+ * and the layout can be purely presentational. It carries an explicit
+ * role="list" because `list-style: none` makes WebKit drop the list role, and
+ * the order that role conveys is what the layout is illustrating (f-005).
+ *
+ * From 768px the odd steps take the left column and the even steps the right,
+ * one step per row — a staircase. The alternation is the point: reading down
+ * the page ping-pongs between the two terminals, which is what a loop between
+ * two agents looks like. A 2×2 grid was rejected because it reads as two rows
+ * of a pair rather than a hand-off, and connectors were rejected because
+ * Protocol.astro already owns the connector idiom and the brief asks for a
+ * simple alternating layout, not a second diagram. Below 768px it is one
+ * column in document order, so the narrow layout needs no media query at all.
+ *
+ * 768px is a raw length on purpose, the trade Personas.astro:51-53 records:
+ * tokens.css owns colour, type and spacing and deliberately defines no
+ * breakpoint scale, so a layout threshold has to be written literally.
+ *
+ * --- Colour and contrast -------------------------------------------------
+ *
+ * Every pairing is already in tokens.css's ratio table; this section
+ * introduces no new one. Muted on surface 7.66:1 dark / 6.06:1 light (the
+ * attribution and the caption), text on surface 16.14:1 / 18.91:1 (the
+ * prompt), muted on base 8.39:1 / 5.66:1 (the lead and the closing line) —
+ * all AA. The card hairline is the decorative 1.40:1 --color-border used
+ * throughout, sharpening an edge the surface fill already draws.
+ *
+ * The caret bar is decorative and carries no information: owl-gold on the
+ * coder's cards, aegean on the reviewer's, purely so the two terminals are
+ * separable at a glance. The attribution text names the terminal, so the
+ * colour is redundant and nothing is lost when the pseudo-element is
+ * unsupported, unstyled or unseen. Aegean is tokens.css's diagram accent and
+ * this staircase is a diagram of the loop; gold stays sparing at two small
+ * bars (OVERVIEW §3.2).
+ *
+ * --- Motion --------------------------------------------------------------
+ *
+ * Reveal (ADR-0005): the section opts into the page's shared observer with
+ * `data-reveal`, and its six blocks carry `.reveal` so they arrive in reading
+ * order — heading, lead, the four turns in sequence, then the closing line.
+ * This component declares no animation of its own, only `--reveal-delay`
+ * custom properties that index.astro's rule reads; they are inert until
+ * `is-revealed` lands and only outside reduced motion. Nothing sets a hidden
+ * base state, so with JS off, the observer unsupported, or reduced motion set,
+ * the section renders complete and immediately (ADR-0005's never-invisible
+ * rule). No script is added — the page still carries exactly one.
+ */
+---
+
+<section id="workflow" class="section" data-reveal>
+  <h2 class="reveal">Run it from two terminals.</h2>
+
+  <p class="lead reveal">One terminal codes. One terminal reviews. Neither sees the other's context — the ledger is the only shared state. Point them at different vendors — the pairing is config, not code — and let the protocol referee.</p>
+
+  <ol class="exchange" role="list">
+    <li class="turn reveal">
+      <p class="who">Terminal 1 — the coder:</p>
+      <p class="prompt">"Go for dev of the next slice."</p>
+      <p class="did">(the agent runs metis kickoff, gets dispatched one slice, commits a brief, codes inside its declared scope, flips coded)</p>
+    </li>
+
+    <li class="turn reveal">
+      <p class="who">Terminal 2 — the reviewer:</p>
+      <p class="prompt">"Go for review of the next slice."</p>
+      <p class="did">(a different agent audits scope and the checklist, then files findings — or flips reviewed)</p>
+    </li>
+
+    <li class="turn reveal">
+      <p class="who">Terminal 1 — the coder:</p>
+      <p class="prompt">"Fix the findings from review."</p>
+      <p class="did">(rework lands on the same slice, same scope, same paper trail)</p>
+    </li>
+
+    <li class="turn reveal">
+      <p class="who">Terminal 2 — the reviewer:</p>
+      <p class="prompt">"Go for re-review — focus on the findings."</p>
+      <p class="did">(the loop repeats until clean; the final flip demands a different agent's identity)</p>
+    </li>
+  </ol>
+
+  <p class="closing reveal">The prompts stay four words long because the protocol carries the context: metis kickoff prints the contract, metis next picks the slice, and exit codes do the arguing.</p>
+</section>
+
+<style>
+  .section {
+    padding-block: var(--space-8);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  /* Same treatment as Problem's lead: one step up in size, muted, so it reads
+     as the frame for what follows rather than as a second heading. */
+  .lead {
+    margin-block-start: var(--space-4);
+    font-size: var(--text-lg);
+    color: var(--color-muted);
+  }
+
+  /* --- The exchange ------------------------------------------------------
+     Mobile-first: one column, in document order. Drops the UA list indent
+     with the token zero rather than a literal 0 — the scale defines the zero
+     step, so spacing comes off the scale even when it is nothing (f-003). */
+  .exchange {
+    display: grid;
+    gap: var(--space-4);
+    margin-block-start: var(--space-6);
+    padding: var(--space-0);
+    list-style: none;
+  }
+
+  /* A terminal pane: raised surface for the boundary, hairline to sharpen the
+     edge, the same shape the hero's transcript and the persona columns use. */
+  .turn {
+    padding: var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background-color: var(--color-surface);
+  }
+
+  /* Title bar. Mono, because this is terminal chrome; the rule beneath it
+     separates the machine's frame from the human's words. */
+  .who {
+    padding-block-end: var(--space-3);
+    border-block-end: 1px solid var(--color-border);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--color-muted);
+  }
+
+  /* The caret bar — decorative chrome echoing the hero's "█", never a prompt
+     glyph in front of the human words. Sized off the spacing scale for its
+     width and off the line box for its height, so it tracks the type. */
+  .who::before {
+    content: "";
+    display: inline-block;
+    width: var(--space-1);
+    height: 0.9em;
+    margin-inline-end: var(--space-2);
+    vertical-align: -0.1em;
+    background-color: var(--color-accent);
+  }
+
+  /* The reviewer's terminal, in aegean. Decorative only: the attribution text
+     is what names the terminal. */
+  .turn:nth-child(even) .who::before {
+    background-color: var(--color-secondary);
+  }
+
+  /* The prompt is a human sentence, so it takes the display face, a size up
+     and full-strength text — the one thing in the card that is not machine
+     output. The quotes come from the copy, not from CSS. */
+  .prompt {
+    margin-block-start: var(--space-3);
+    font-size: var(--text-lg);
+    line-height: var(--leading-snug);
+    font-weight: var(--weight-medium);
+  }
+
+  /* What the tool then did: mono and muted, the site's idiom for machine
+     behaviour, one step down so it sits under the prompt rather than beside
+     it in importance. */
+  .did {
+    margin-block-start: var(--space-3);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--color-muted);
+  }
+
+  .closing {
+    margin-block-start: var(--space-6);
+    color: var(--color-muted);
+  }
+
+  /* --- The staircase ----------------------------------------------------
+     Two lanes, one step per row: the odd steps hang on the left, the even
+     ones on the right, so reading down the page ping-pongs between the two
+     terminals. The rows have to be stated explicitly — with only the columns
+     set, auto-placement would pack steps 1 and 2 into the same row and the
+     alternation would collapse into a 2×2 grid. */
+  @media (min-width: 768px) {
+    .exchange {
+      grid-template-columns: repeat(2, 1fr);
+      column-gap: var(--space-5);
+    }
+
+    .turn:nth-child(odd) {
+      grid-column: 1;
+    }
+
+    .turn:nth-child(even) {
+      grid-column: 2;
+    }
+
+    .turn:nth-child(1) {
+      grid-row: 1;
+    }
+
+    .turn:nth-child(2) {
+      grid-row: 2;
+    }
+
+    .turn:nth-child(3) {
+      grid-row: 3;
+    }
+
+    .turn:nth-child(4) {
+      grid-row: 4;
+    }
+  }
+
+  /* --- Reveal stagger ----------------------------------------------------
+     Choreography only: index.astro owns the animation, this component owns
+     the order. The delays are inert custom properties until that rule reads
+     them, which happens only once `is-revealed` lands and only outside
+     reduced motion — so no media query is needed here.
+
+     80ms apart in reading order, the h2 taking the 0ms default. The four
+     turns arrive in sequence rather than as a block, because the sequence IS
+     the content: the hand-off is what the section is about. The closing line
+     lands last, at 480ms, so the section settles as one gesture. */
+  .lead {
+    --reveal-delay: 80ms;
+  }
+
+  .turn:nth-child(1) {
+    --reveal-delay: 160ms;
+  }
+
+  .turn:nth-child(2) {
+    --reveal-delay: 240ms;
+  }
+
+  .turn:nth-child(3) {
+    --reveal-delay: 320ms;
+  }
+
+  .turn:nth-child(4) {
+    --reveal-delay: 400ms;
+  }
+
+  .closing {
+    --reveal-delay: 480ms;
+  }
+</style>
