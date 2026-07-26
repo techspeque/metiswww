@@ -78,6 +78,30 @@ Read ADR-0007 in full before coding. Summary of the binding parts:
   docs/copy.md §ThemeToggle, drawn in CSS, no text, no emoji. The
   accessible name carries the meaning.
 
+## Review cycle 1 — f-014 rework (coder)
+
+Both halves of f-014 accepted; both fixed in src/layouts/Base.astro only
+(tokens.css untouched this cycle — the built CSS hash is unchanged).
+
+- **Stale a11y state on a live OS change.** The media query is now hoisted
+  into the script and carries a `change` listener that re-runs `sync()`.
+  With no override the label and `aria-pressed` now track the OS; with an
+  override set the listener is a no-op, because `sync()` recomputes from
+  the same effective-scheme function the click path uses.
+- **Storage failure must degrade to OS-preference behavior.** Two paths,
+  because ADR-0007 also forbids showing a dead control:
+  - read throws (private mode, storage blocked) — the button is never
+    un-hidden, so the visitor gets pure `prefers-color-scheme` behavior
+    and is not offered a switch that cannot hold its answer. The read
+    doubles as the capability probe; a scratch-key probe would have
+    broken the one-localStorage-key acceptance criterion.
+  - write throws (quota; only reachable when the read worked) —
+    `data-theme` is removed, so the effective scheme falls back to the OS
+    within the same task, with no paint in between.
+- **Budget.** Paid for by hoisting the three repeated string literals and
+  moving to arrow functions: 719 B inner / 736 B whole, down from 723/740
+  before the fix. Still the only two scripts on the site.
+
 ## Test plan
 
 - Build; grep script count/sizes/positions in dist/index.html
