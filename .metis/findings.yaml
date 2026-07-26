@@ -73,4 +73,5 @@ findings:
       severity: P2
       category: scope
       finding: 'Scope audit fails: metis log phase-1-gate --validate -o json reports docs/copy.md as out_of_scope_files. The pre-committed brief owned only .metis/briefs/phase-1-gate.md; commit 5c7bdb6 added docs/copy.md to owned_paths and modified docs/copy.md in the same commit, so the scope contract was not established before the touch. Route the copy-deck change through a properly scoped slice or obtain an explicit human scope waiver recorded in the gate contract, then re-run validation.'
-      status: open
+      status: resolved
+      resolved_by: 'Verified after 51e7093: .metis/briefs/phase-1-gate.md:27-30 declares docs/copy.md as a machine-parseable owned path; metis log phase-1-gate --validate -o json returns ok=true and out_of_scope_files=[].'
