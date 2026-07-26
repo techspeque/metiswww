@@ -19,4 +19,5 @@ findings:
       severity: P3
       category: maint
       finding: 'src/components/Problem.astro:62 uses raw padding: 0 despite the slice acceptance criterion requiring spacing via --space-* only and tokens.css defining --space-0. Replace it with padding: var(--space-0).'
-      status: open
+      status: resolved
+      resolved_by: 'Problem.astro:65 now padding: var(--space-0); the marker offset at :84 tokenised alongside it. Independent clean build (rm -rf dist && npm run verify) green; grep for literal zero spacing/offset values in both components → no match.'
