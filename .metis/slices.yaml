@@ -108,6 +108,9 @@ slices:
       review_cycles: 0
       blocked_by:
         - phase-2-ws-2.1
+        - phase-2-ws-2.4
+        - phase-2-ws-2.5
+        - phase-2-ws-2.6
         - phase-2-ws-2.2
         - phase-2-ws-2.3
       created: ""
