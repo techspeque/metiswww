@@ -98,3 +98,10 @@ findings:
       category: ""
       finding: 'docs/copy.md §Workflow section-footer line renders ''The prompts stay four words long'', but none of the four prompts the same section publishes is four words: ''Go for dev of the next slice.'' (7), ''Go for review of the next slice.'' (7), ''Fix the findings from review.'' (5), ''Go for re-review — focus on the findings.'' (7). The claim is checkable against the page itself and is false as written, the same class f-011 raised for a rendered label (rhetorical rather than a CLI claim, hence advisory, not blocking). docs/copy.md is read_only in this slice''s scope and ADR-0003 makes the deck the only place the string may change, so phase-2-ws-2.5 renders it verbatim. Fix belongs to the deck owner: reword to something the page satisfies (e.g. ''stay one line long'' / ''stay a single sentence long''), or make the prompts literally four words.'
       status: advisory
+    - id: f-014
+      date: "2026-07-26"
+      slice: phase-2-ws-2.6
+      severity: P2
+      category: behavior
+      finding: src/layouts/Base.astro:130 theme state is not fully synchronized. With no saved override, a live prefers-color-scheme change updates CSS but never reruns sync(), leaving aria-pressed and aria-label stale; the announced action can be opposite to the click result. Also, if localStorage.setItem throws, data-theme was already applied and remains set, contrary to ADR-0007 lines 71-73 requiring storage failure to fall back to OS-preference behavior. Resync on media-query changes and restore the OS-driven state on storage failure while retaining the 768-byte budget.
+      status: open
