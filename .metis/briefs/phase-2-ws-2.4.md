@@ -88,6 +88,17 @@ as of this commit. Note that recording an advisory finding against this slice
 would itself invalidate stat 2 — hence this brief note rather than
 `metis findings record`.
 
+**Vendor-line claims check out.** `metis surface generate` exists in v0.0.6
+(`metis surface --help` → `generate` / `validate`), and all four adapter files
+the §Hero verification note names are present in this repository: CLAUDE.md,
+AGENTS.md, opencode.json, .claude/settings.json. The cross-vendor pairing the
+note cites is visible in `.metis/slices-done.yaml` (phase-1 entries:
+`coder: claude-code/opus`, `reviewer: opencode/gpt-5.6-sol`).
+
+**The audit link resolves.** `gh repo view techspeque/metiswww --json
+visibility` → `PUBLIC`, so the caption's invitation is live for a visitor
+today rather than only after the dev → main merge.
+
 Separately, and also not edited: the §Proof blockquote at docs/copy.md:85-86
 ("No estimates render on the site unless visibly labeled `est.`; none are
 used here") contradicts stat 4, which *is* a labeled estimate. It is an

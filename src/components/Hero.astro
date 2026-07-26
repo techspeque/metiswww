@@ -59,6 +59,21 @@
  * `−55%` opens with U+2212 MINUS SIGN, not a hyphen-minus, matching the deck
  * byte-for-byte.
  *
+ * The vendor line's `AGENTS.md` is backticked in the deck and renders as plain
+ * text here, the same call Protocol.astro:27-30 made for `metis next` and
+ * Install.astro:19-21 for the `go install` line: a <code> element inside the
+ * sentence would split it into three text nodes and break the literal grep,
+ * and that is not a trade worth making for typography alone. The stat values
+ * are backticked in the deck for the same reason — to pin the exact string —
+ * and are likewise not <code>; the deck and the plan both call for them in the
+ * display face, which is what .stat dt gives them.
+ *
+ * The caption is the one place the rule bends, and only where it must: a
+ * markdown link is functional, not typographic, so "audit the ledger" is a
+ * real <a>. It splits there and nowhere else, with the trailing "." outside
+ * the anchor because that is where the deck puts it — Install.astro:12-17
+ * settled this shape.
+ *
  * The strip carries no `data-reveal` and no `.reveal`: the hero is above the
  * fold and renders immediately (§2.1), and the strip is part of the hero.
  * ADR-0005's observer never sees this subtree, and no script is added.
