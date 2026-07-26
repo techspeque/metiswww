@@ -77,6 +77,28 @@
  * The strip carries no `data-reveal` and no `.reveal`: the hero is above the
  * fold and renders immediately (§2.1), and the strip is part of the hero.
  * ADR-0005's observer never sees this subtree, and no script is added.
+ *
+ * Presentation deviates from plan §2.4 on two points, on the product owner's
+ * direction after reviewing the first cut (recorded in this slice's brief
+ * under "Scope amendment"). §2.4 asks for a 2×2 grid with the values "styled
+ * display"; this renders them mono, in aegean teal, as a hairline-divided row
+ * that goes four-across at 1024px. The reasoning:
+ *
+ *   - Mono is the site's idiom for machine output — the same face as the
+ *     transcript immediately above. A ledger reading set in the display face
+ *     reads as a marketing stat; set in mono it reads as something the tool
+ *     printed, which is the claim the section is making.
+ *   - Teal is tokens.css's success colour and these are the successes. Gold
+ *     was rejected: the hero already spends it on the caret and the primary
+ *     CTA, and OVERVIEW §3.2 asks for it sparingly.
+ *   - The estimate is muted rather than teal, so measured-vs-estimated is
+ *     legible before a word is read.
+ *   - Four across removes the dead space 2×2 left in the wide tracks. The
+ *     2×2 the plan asked for survives as the 640-1023px band.
+ *
+ * Lightning CSS rewrites the `min-width` queries below to `width>=` in the
+ * built stylesheet. That is the same transform f-004 recorded as advisory for
+ * Personas.astro, not a new behaviour.
  */
 ---
 
@@ -124,7 +146,7 @@
         <dd>out-of-scope files shipped — file scope is machine-audited on every slice</dd>
       </div>
 
-      <div class="stat">
+      <div class="stat stat--est">
         <dt>−55%</dt>
         <dd>est. token spend at best observed — one bounded slice at a time replaces session-long re-exploration</dd>
       </div>
@@ -222,23 +244,65 @@
     color: var(--color-muted);
   }
 
-  /* Mobile-first: one column needs no query at all. */
+  /* The rules above and below turn the four numbers into one horizontal band
+     — a ledger row rather than four loose figures. They are the strip's only
+     ornament: --color-border is the same decorative 1.40:1 hairline the
+     terminal and the persona columns use, carrying no information (the <dl>
+     structure does that), so it has no contrast obligation.
+
+     Mobile-first: one column, no vertical dividers, no media query. */
   .stats {
     display: grid;
     gap: var(--space-4);
-    margin-block-start: var(--space-4);
+    margin-block-start: var(--space-3);
+    padding-block: var(--space-4);
+    border-block: 1px solid var(--color-border);
   }
 
-  /* 640px is a raw length on purpose, the same trade Personas.astro:51-53
-     names: tokens.css owns colour, type and spacing and deliberately defines
-     no breakpoint scale, so the plan's stated threshold (§2.4: "stacks below
-     ~640px, 2×2 where space allows") is written literally. Two columns is the
-     terminal state — a four-across row would strand the strip's long labels
-     in narrow tracks, and the plan asks for 2×2, not "as wide as it fits". */
+  /* 640px and 1024px are raw lengths on purpose, the same trade
+     Personas.astro:51-53 names: tokens.css owns colour, type and spacing and
+     deliberately defines no breakpoint scale, so a layout threshold has to be
+     written literally.
+
+     Two rows of two, then one row of four. The column gap goes to zero here
+     because the divider rule now does the separating and the cell padding
+     supplies the air — a gap on top of both would read as a broken table. */
   @media (min-width: 640px) {
     .stats {
       grid-template-columns: repeat(2, 1fr);
-      column-gap: var(--space-5);
+      column-gap: 0;
+      row-gap: var(--space-5);
+    }
+
+    .stat {
+      padding-inline: var(--space-4);
+      border-inline-start: 1px solid var(--color-border);
+    }
+
+    /* First cell of each row: no divider, and flush with the left edge so the
+       numbers align with the headline above them. */
+    .stat:nth-child(odd) {
+      padding-inline-start: 0;
+      border-inline-start: 0;
+    }
+  }
+
+  /* One row of four. Every cell but the first regains its divider, which means
+     undoing the 2-column rule for the third cell — it is no longer the start
+     of a row. */
+  @media (min-width: 1024px) {
+    .stats {
+      grid-template-columns: repeat(4, 1fr);
+    }
+
+    .stat:nth-child(odd) {
+      padding-inline-start: var(--space-4);
+      border-inline-start: 1px solid var(--color-border);
+    }
+
+    .stat:first-child {
+      padding-inline-start: 0;
+      border-inline-start: 0;
     }
   }
 
@@ -250,18 +314,33 @@
      at the cost of a DOM/visual mismatch, which is the worse trade. The
      wrapper <div> around each pair is what HTML5 sanctions for grouping, and
      it is what gives the grid its four children. */
+  /* Mono, because these are ledger readings and the mono face is this site's
+     idiom for "this came out of the machine" — the same face as the transcript
+     directly above. tabular-nums keeps the digits on a common width so the
+     four figures align down the row.
+
+     Aegean teal, not owl-gold: tokens.css assigns gold to links, the caret and
+     key highlights (the hero already spends it on the caret and the primary
+     CTA, and four gold numbers would stop it being sparing), and assigns teal
+     to success states, which is what a measured proof number is. Secondary on
+     background is 4.68:1 dark / 5.87:1 light — AA as normal text, and these
+     render well above the 24px large-text threshold besides. */
   .stat dt {
+    font-family: var(--font-mono);
     font-size: clamp(var(--text-xl), 4vw, var(--text-3xl));
     font-weight: var(--weight-bold);
     line-height: var(--leading-tight);
-    /* Text on background, 17.68:1 both schemes. Deliberately NOT accent: the
-       hero already spends owl-gold on the caret and the primary CTA, and four
-       gold numbers would stop it being the sparing highlight OVERVIEW §3.2
-       asks for. Size and weight carry the emphasis instead. */
-    color: var(--color-text);
-    /* The digits are the comparison, so they should line up across the row
-       even in a proportional face. */
+    color: var(--color-secondary);
     font-variant-numeric: tabular-nums;
+  }
+
+  /* The estimate is muted rather than teal, so the measured/estimated split
+     ADR-0008 cares about is visible before a word is read — three teal
+     readings and one that visibly is not one. This reinforces the copy's
+     "est." prefix; it does not replace it, and neither may be dropped.
+     Muted on background: 8.39:1 dark / 5.66:1 light, AA. */
+  .stat--est dt {
+    color: var(--color-muted);
   }
 
   .stat dd {
