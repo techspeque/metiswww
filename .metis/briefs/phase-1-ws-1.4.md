@@ -176,6 +176,16 @@ against `astro preview`. Every number below is from the final build.
   not the media query, which belongs to tokens.css): muted `#5C636E` on
   `#FAF7F0` (5.66:1), accent `#8A5A12` (5.53:1), text `#0E1116` (17.68:1),
   surface `#FFFFFF`. All AA, all already in tokens.css's ratio table
+- Reduced motion (OVERVIEW.md §3.4) — **substantively** satisfied, not
+  vacuously, and the distinction matters (f-002). Install.astro and
+  Footer.astro declare no `animation`, `transition` or `@keyframes` of their
+  own (grepped, no matches), but this slice adds six anchors, and every
+  anchor inherits `transition: color var(--duration-fast) var(--ease-out)`
+  from global.css:102. That transition is real motion in new UI, and
+  global.css:159-166's `prefers-reduced-motion: reduce` block neutralises it
+  with `transition-duration: 0.01ms !important` on `*, ::before, ::after` —
+  present in the built CSS in that form. So the new UI does animate, and the
+  invariant disables it
 - Install→footer boundary checked live in both schemes at 1440px and 500px:
   Install is the last child of main, its hairline reads as the rule above the
   footer rather than as a stray underline
