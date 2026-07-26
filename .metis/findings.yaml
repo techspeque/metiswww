@@ -107,3 +107,10 @@ findings:
       finding: src/layouts/Base.astro:130 theme state is not fully synchronized. With no saved override, a live prefers-color-scheme change updates CSS but never reruns sync(), leaving aria-pressed and aria-label stale; the announced action can be opposite to the click result. Also, if localStorage.setItem throws, data-theme was already applied and remains set, contrary to ADR-0007 lines 71-73 requiring storage failure to fall back to OS-preference behavior. Resync on media-query changes and restore the OS-driven state on storage failure while retaining the 768-byte budget.
       status: resolved
       resolved_by: 'Verified built theme script: matchMedia change resyncs aria state when no override; stored override remains authoritative; localStorage read failure keeps the control hidden with no data-theme; write failure removes data-theme and resyncs to OS. Theme script is 719 B inner and remains before CSS.'
+    - id: f-015
+      date: "2026-07-26"
+      slice: phase-2-ws-2.3
+      severity: P2
+      category: behavior
+      finding: 'The workflow is not main-only: .github/workflows/deploy.yml:25 enables workflow_dispatch without a github.ref guard, so selecting dev runs both build and deploy (lines 41-90). Merely naming the github-pages environment does not impose a branch restriction in this workflow. This violates the plan acceptance criterion that deploy.yml triggers only on main and the ADR requirement that dev never deploys. Remove workflow_dispatch or explicitly gate deployment to refs/heads/main.'
+      status: open
