@@ -123,31 +123,84 @@ a fully-themed, zero-JS single page.
 - **Verdict:** pass
 - **Evidence:** grep on `dist/_astro/index.CidyUgey.css`.
 
-### Scenario 5: Copy accuracy — no aspirational CLI claims in placeholder copy
+### Scenario 5: Copy accuracy — all page copy matches the real metis, no aspirational CLI output
 
-- **Setup:** the six section components (`src/components/*.astro`) that carry
-      all page copy.
-- **Action:** read every component and grep the copy for CLI commands, flags,
-      shell prompts, fenced blocks, and `<code>`/`<pre>` elements
-      (`grep -rEn` over `src/components` for `metis <word>`, `npm `, `--<flag>`,
-      a `$` prompt, a triple-backtick fence, `<code`, `<pre`).
-- **Expected:** per OVERVIEW.md §3.4, "commands shown on the site must exist
-      with the shown flags — no aspirational output." The Phase-0 skeleton is
-      placeholder copy, so the honest expectation is that it shows *no* CLI
-      commands or output at all.
-- **Actual:** all copy is placeholder prose — Hero carries a heading (`metis`)
-      plus a tagline ("The meta-harness that keeps AI coding agents on task.");
-      Problem, Personas, Protocol, Install, and Footer each carry a heading plus
-      a "Placeholder for …" line. No component renders a command, flag, shell
-      prompt, or command-output block; the grep's only hits are CSS custom
-      properties (`--space-*`, `border-bottom`) inside `<style>`, not copy. The
-      Hero tagline describes what metis is; it makes no CLI-behavior claim.
-- **Verdict:** pass — **vacuously satisfied.** No CLI claims exist in the
-      placeholder copy yet, so there is nothing that could diverge from the real
-      CLI. Phase 1 introduces the real commands (typed terminal, install
-      one-liner, lifecycle labels) and re-arms this invariant as a live check.
-- **Evidence:** full read of `src/components/*.astro`; grep above (zero copy
-      hits).
+- **Setup (scope verified against the filesystem, per accuracy rule #1 — the
+      set below was enumerated with `find`/`grep`, not assumed):** every file
+      that carries user-visible page copy. A whole-repo sweep
+      (`find src public -type f`; `grep -rn` for the copy literals) establishes
+      the complete set:
+  - **`src/components/*.astro` (6 files):** Hero, Problem, Personas, Protocol,
+    Install, Footer — headings + body prose rendered into `<main>`.
+  - **`src/pages/index.astro:16,18`:** the `title` and `description` literals,
+    which Base.astro renders into `<title>`, `<meta name="description">`, and
+    the og:/twitter: title+description. *This file carries page copy and was
+    missed by the prior cycle's Scenario 5 — it is the substance of f-002.*
+  - **Not copy sources (excluded, each with a filesystem basis):**
+    `src/layouts/Base.astro` is a conduit — it interpolates the
+    title/description props and emits only metadata enum values
+    (`content="website"`, `content="summary"`); a grep for literal copy strings
+    returns none. `src/consts.ts` holds a URL (`SITE.url`) and two hex literals
+    (`THEME_COLOR`) — no behavioral copy. `public/` holds only favicons, woff2
+    fonts, and font-license `.txt` files — none rendered as page copy. No other
+    page or markdown exists under `src`.
+- **Action:** read every copy source; grep source and the built
+      `dist/index.html` for CLI commands, flags, shell prompts, fenced blocks,
+      and `<code>`/`<pre>` elements (`metis <word>`, `npm `, `--<flag>`, a `$`
+      prompt, a triple-backtick fence, `<code`, `<pre`). Trace every shipped
+      visible-text and meta string in `dist` back to its source file, then
+      classify each string and check it against the correct authority.
+- **Expected:** per OVERVIEW.md §3.4, "All copy about metis behavior must match
+      the real CLI (commands shown on the site must exist with the shown flags —
+      no aspirational output)." So (a) no rendered command/flag/output anywhere,
+      and (b) any descriptive claim about metis must be true.
+- **Actual — every shipped copy string traced to source and classified:**
+  - **Section labels / placeholders (no metis-behavior claim, nothing to
+    check):** the section `<h2>`s ("The problem", "Who it's for", "The
+    protocol", "Install"), Footer's "metiswww" heading, and every body `<p>`
+    ("Placeholder for …"). These name the page's own sections.
+  - **Identity / positioning claims (checked against OVERVIEW.md, the spec):**
+    `<title>`/og:title/twitter:title "metis — the meta-harness for AI coding
+    agents" and Hero `<h1>` "metis" + tagline "The meta-harness that keeps AI
+    coding agents on task." Both match OVERVIEW.md §1 ("metis, the meta-harness
+    that orchestrates AI coding agents"). Accurate.
+  - **Protocol-behavior claims (checked against the real CLI + AGENTS.md — this
+    is the substantive copy the §3.4 invariant targets):** the meta description
+    (`index.astro:18`, shipped verbatim in `dist` as `<meta name=description>`,
+    og:description, and twitter:description): "metis governs AI coding agents
+    with a disciplined protocol: one slice at a time, file scope as a contract,
+    and cross-vendor review — so scope creep, self-review, and lost context stop
+    happening." Each claim was verified against the CLI mechanism, not just a
+    prose match:
+    - *"one slice at a time"* ← `metis next -o json` returns a single
+      active-slice object (not a list); `metis status` reads "0/1"; AGENTS.md
+      Hard Rule 1 ("ONE slice at a time — `metis next` decides which, not you").
+    - *"file scope as a contract"* ← the brief declares `owned_paths`;
+      `metis log <id> --validate` audits committed files against that scope;
+      AGENTS.md Hard Rule 3 ("Scope is a contract — only touch files declared in
+      your brief").
+    - *"cross-vendor review"* ← `metis commit --flip reviewed --agent <slug>`
+      requires a reviewer identity (distinct from the coder); Model Routing
+      "Review: cross-vendor"; AGENTS.md Hard Rule 4 ("Cross-vendor review — you
+      cannot review your own work"). All three hold.
+  - No component or page renders a command, flag, shell prompt, or
+    command-output block; the source grep's only hits are CSS custom properties
+    (`--space-*`, `border-bottom`) inside `<style>`, not copy.
+- **Verdict:** pass — **substantively satisfied, not vacuous.** Correcting the
+      prior cycle's characterization (f-002): the page *does* carry copy about
+      metis behavior — the meta description's three protocol claims — and each is
+      true against the real CLI and contract, so the §3.4 invariant is satisfied
+      by accurate claims, not by an absence of claims. Only the invariant's
+      narrow sub-clause ("commands shown … must exist with the shown flags") is
+      vacuous today: no command string is rendered anywhere yet. Phase 1
+      introduces rendered commands (typed terminal, install one-liner, lifecycle
+      labels) and re-arms that sub-clause as a live check.
+- **Evidence:** `find src public` + `grep -rn` copy sweep (the complete file set
+      above); full read of the 6 components, `index.astro`, `Base.astro`,
+      `consts.ts`; `dist/index.html` grep tracing every shipped visible/meta
+      string to source; `metis next -o json` / `metis status` / AGENTS.md Hard
+      Rules 1, 3, 4 + Model Routing for the three protocol claims; OVERVIEW.md §1
+      for the positioning claims.
 
 ---
 
@@ -209,7 +262,11 @@ layout (0.2) and the six-section skeleton (0.3) with zero raw color at any
 seam; the site builds clean, ships zero client JS, styles both color schemes
 (dark-first with a light override) and renders legibly in each under a real
 browser; all WCAG AA pairings hold; and CSS/font/external-origin budgets are
-well within threshold. Proceed to Phase 1 planning.
+well within threshold. All five OVERVIEW.md §3.4 invariants are evidenced,
+including copy accuracy: the only copy about metis behavior on the page — the
+meta description's protocol claims — is true against the real CLI (Scenario 5),
+and no aspirational command output is rendered anywhere. Proceed to Phase 1
+planning.
 
 ## Report
 
