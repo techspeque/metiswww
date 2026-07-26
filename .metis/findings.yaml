@@ -21,3 +21,10 @@ findings:
       finding: 'src/components/Problem.astro:62 uses raw padding: 0 despite the slice acceptance criterion requiring spacing via --space-* only and tokens.css defining --space-0. Replace it with padding: var(--space-0).'
       status: resolved
       resolved_by: 'Problem.astro:65 now padding: var(--space-0); the marker offset at :84 tokenised alongside it. Independent clean build (rm -rf dist && npm run verify) green; grep for literal zero spacing/offset values in both components → no match.'
+    - id: f-004
+      date: "2026-07-26"
+      slice: phase-1-ws-1.2
+      severity: P3
+      category: ""
+      finding: 'Advisory (non-blocking): Lightning CSS rewrites Personas.astro:49''s ''@media (min-width: 768px)'' to media-query range syntax ''@media (width>=768px)'' in dist/_astro/*.css. Semantically identical, but range syntax is unsupported before Chrome 104 / Safari 16.4 / Firefox 63, where the query is dropped and the personas render single-column at all widths. That degradation is benign because the layout is mobile-first (one column is the base rule), and this is the project''s first min-width query so no prior slice exposed it. Worth a deliberate decision in phase 2 alongside the Lighthouse/browser-support work (ws-2.2) — either accept it or set an Astro build target that keeps the legacy syntax.'
+      status: advisory
