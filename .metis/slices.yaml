@@ -75,6 +75,8 @@ slices:
       coded: false
       reviewed: false
       review_cycles: 0
+      blocked_by:
+        - phase-2-ws-2.6
       created: ""
     - id: phase-2-ws-2.3
       title: GitHub Pages pipeline, base path, and 404
