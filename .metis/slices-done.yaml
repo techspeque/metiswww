@@ -167,3 +167,17 @@ slices:
       reviewed: true
       review_cycles: 0
       created: "2026-07-26"
+    - id: phase-2-ws-2.6
+      title: Manual theme toggle (ADR-0007)
+      type: feat
+      priority: p2
+      risk: high
+      stage: polish
+      coder: claude-code/opus
+      reviewer: opencode/gpt-5.6-sol
+      plan: .metis/plans/phase-2.md
+      plan_section: §2.6
+      coded: true
+      reviewed: true
+      review_cycles: 1
+      created: "2026-07-26"
