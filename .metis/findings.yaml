@@ -113,7 +113,8 @@ findings:
       severity: P2
       category: behavior
       finding: 'The workflow is not main-only: .github/workflows/deploy.yml:25 enables workflow_dispatch without a github.ref guard, so selecting dev runs both build and deploy (lines 41-90). Merely naming the github-pages environment does not impose a branch restriction in this workflow. This violates the plan acceptance criterion that deploy.yml triggers only on main and the ADR requirement that dev never deploys. Remove workflow_dispatch or explicitly gate deployment to refs/heads/main.'
-      status: open
+      status: resolved
+      resolved_by: 'Verified commit 1b29985: both build and deploy jobs independently require github.ref == refs/heads/main, so a dev-ref workflow_dispatch run executes neither build nor deployment; post-verify and scope audit are green.'
     - id: f-016
       date: "2026-07-26"
       slice: phase-2-ws-2.3
