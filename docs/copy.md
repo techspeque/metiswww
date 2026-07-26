@@ -112,3 +112,18 @@ ledger. [Read the audit trail](https://github.com/techspeque/metiswww).
 **Links:** GitHub · Docs · Releases · MIT License
 
 **Copyright line:** © 2026 techspeque
+
+## NotFound (404 page)
+
+**Heading:** 404 — no active slice here.
+
+**Body:** This page isn't in the ledger. The dispatch algorithm suggests
+returning to the last known good state.
+
+**CTA:** ← Back to metis
+
+**Terminal garnish (mono, static):**
+```
+$ metis next
+No active slices. The backlog is empty.
+```

@@ -127,10 +127,12 @@ ADR-0004 landmark amendment. All copy renders verbatim from docs/copy.md
 (ADR-0003); briefs are pre-authored in .metis/briefs/. Coder:
 claude-code/opus; reviewer: opencode/gpt-5.6-sol (genuinely cross-vendor).
 
-### Phase 2 — Polish & Ship
-Scroll-reveal pass, reduced-motion audit, Lighthouse pass (≥95 on
-performance/accessibility/best-practices/SEO), GitHub Pages deploy workflow,
-custom 404.
+### Phase 2 — Polish & Ship — PLANNED (.metis/plans/phase-2.md, seeded)
+Section reveals under the one-script policy (ADR-0005), Lighthouse ≥95
+across all categories, GitHub Pages pipeline with base-path handling
+(ADR-0006), and the 404 page (copy: docs/copy.md §NotFound). Briefs
+pre-authored; blocked on phase-1-gate. After the phase-2 gate passes, the
+human merges dev → main and the site ships.
 
 ---
 
