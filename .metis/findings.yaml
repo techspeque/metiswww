@@ -104,4 +104,5 @@ findings:
       severity: P2
       category: behavior
       finding: src/layouts/Base.astro:130 theme state is not fully synchronized. With no saved override, a live prefers-color-scheme change updates CSS but never reruns sync(), leaving aria-pressed and aria-label stale; the announced action can be opposite to the click result. Also, if localStorage.setItem throws, data-theme was already applied and remains set, contrary to ADR-0007 lines 71-73 requiring storage failure to fall back to OS-preference behavior. Resync on media-query changes and restore the OS-driven state on storage failure while retaining the 768-byte budget.
-      status: open
+      status: resolved
+      resolved_by: 'Verified built theme script: matchMedia change resyncs aria state when no override; stored override remains authoritative; localStorage read failure keeps the control hidden with no data-theme; write failure removes data-theme and resyncs to OS. Theme script is 719 B inner and remains before CSS.'
