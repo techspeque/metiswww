@@ -31,6 +31,7 @@ accuracy_rules:
 commands:
   verify: npm run verify
   timeout_seconds: 300
+  env_check: node -e "if(parseInt(process.version.slice(1))<22){console.error('Node '+process.version+' — this project requires >=22 (nvm use 22)');process.exit(1)}"
 commits:
   prefixes:
     - feat
