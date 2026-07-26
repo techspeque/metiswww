@@ -195,3 +195,17 @@ slices:
       reviewed: true
       review_cycles: 0
       created: ""
+    - id: phase-2-ws-2.3
+      title: GitHub Pages pipeline, base path, and 404
+      type: feat
+      priority: p2
+      risk: high
+      stage: ship
+      coder: claude-code/opus
+      reviewer: opencode/gpt-5.6-sol
+      plan: .metis/plans/phase-2.md
+      plan_section: §2.3
+      coded: true
+      reviewed: true
+      review_cycles: 1
+      created: ""
