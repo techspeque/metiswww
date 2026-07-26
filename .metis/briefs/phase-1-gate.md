@@ -75,6 +75,19 @@ landmark amendment (ws-1.4) — composed into the content-complete single page.
 
 ## 2. Composition Scenarios
 
+The plan declares five composition bullets plus a performance line. This report
+reorganises them into six scenarios; the mapping is:
+
+| .metis/plans/phase-1.md §Phase Gate | Covered by |
+|---|---|
+| Full-page render in both schemes, no placeholder text | Scenario 1 (build + placeholder sweep) and Scenario 5 (both-scheme renders) |
+| Copy audit — traceable to docs/copy.md, CLI claims verified against v0.0.6+ | Scenario 2 |
+| Animation policy — one inline script, plays once, reduced-motion final states | Scenario 3 |
+| Landmarks — one main, body-level footer, one h1, unbroken headings | Scenario 4 |
+| WCAG AA pairings documented and true for new UI | §4 (contrast table + reproduction note) |
+| Perf — CSS ≤ 50KB, script ≤ 600 B, no new fonts | §4 (budget table) |
+| *(not plan-declared)* responsive behaviour at the new breakpoints | Scenario 6 |
+
 ### Scenario 1: Clean build — five sections plus footer compose, no placeholders
 
 - **Setup:** clean `dev` checkout, `dist/` removed.
@@ -373,11 +386,27 @@ ones. Every text pairing ≥ 4.5:1; every informational non-text boundary ≥ 3:
 | diagram connectors: secondary on surface — dark / light | 4.27:1 / 6.28:1 | decorative | n/a |
 | hairline: border on bg — dark / light | 1.41:1 / 1.29:1 | decorative | n/a |
 
-Eleven of the twelve rows that `tokens.css` also documents match its published
-table to the hundredth, which is what makes the one outlier credible: the light
-hairline `#E2DBCB` on `#FAF7F0` computes **1.29:1**, not the **1.10:1** the
-table states (f-008). Both are far below 3:1 and the token is decorative in
-both schemes, so nothing about AA changes.
+**Reproduction against `tokens.css`.** Its published table (`tokens.css:50-57`
+dark, `:60-66` light) carries 15 rows, 13 of them non-decorative. **All 13
+non-decorative rows reproduce exactly** — 17.68, 8.39, 8.17, 4.68, 16.14, 7.66,
+7.46 (dark) and 17.68, 5.66, 5.53, 5.87, 18.91, 6.06 (light). Both hairline
+rows differ, and the table above prints the computed values, so name both:
+dark `#2A2F38` on `#0E1116` computes **1.41:1** against a documented 1.40:1 —
+rounding at the boundary, the same underlying value — and light `#E2DBCB` on
+`#FAF7F0` computes **1.29:1** against a documented 1.10:1, which is a genuine
+error (f-008). Reproducing 13 of 13 text pairings is what isolates the light
+hairline as the defect rather than the method. Neither hairline carries text or
+information, and both sit far below the 3:1 threshold either way, so no AA
+conclusion changes. Where this report and f-008's own wording disagree on the
+count, **the table and paragraph above are authoritative**: f-008's parenthetical
+says "11 of 12 other rows" and then lists 12 values, which miscounts the same
+reproduction described here (`metis findings` has no edit path; the substance of
+f-008 — the 1.10 vs 1.29 error — is correct).
+
+Two rows in the table above are new pairings `tokens.css` does not document at
+all: accent on the light surface (`#8A5A12` on `#FFFFFF`, 5.91:1 — Hero.astro's
+comment states it conservatively as "≥ 5.53:1", which holds) and secondary on
+the light surface (6.28:1, decorative).
 
 ---
 
