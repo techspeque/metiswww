@@ -27,7 +27,8 @@ findings:
       severity: P3
       category: ""
       finding: 'Advisory (non-blocking): Lightning CSS rewrites Personas.astro:49''s ''@media (min-width: 768px)'' to media-query range syntax ''@media (width>=768px)'' in dist/_astro/*.css. Semantically identical, but range syntax is unsupported before Chrome 104 / Safari 16.4 / Firefox 63, where the query is dropped and the personas render single-column at all widths. That degradation is benign because the layout is mobile-first (one column is the base rule), and this is the project''s first min-width query so no prior slice exposed it. Worth a deliberate decision in phase 2 alongside the Lighthouse/browser-support work (ws-2.2) — either accept it or set an Astro build target that keeps the legacy syntax.'
-      status: advisory
+      status: resolved
+      resolved_by: 'Accepted after review: the built CSS still uses media-query range syntax, but unsupported legacy browsers fall back to the valid mobile-first single-column layout. The deliberate compatibility decision is recorded in the phase-2-ws-2.2 brief; independent Lighthouse 13.4.1 mobile and desktop runs both scored 100 in all required categories.'
     - id: f-005
       date: "2026-07-26"
       slice: phase-1-ws-1.3
