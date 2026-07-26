@@ -81,4 +81,5 @@ findings:
       severity: P2
       category: behavior
       finding: 'src/components/Hero.astro:118-119 renders ''10 findings caught in review, all after the author had called the work done'', but the docs/copy.md:118-123 verification fails: f-006 (6ce3545), f-007 (106f067), and f-008 (9b6ca1e) were recorded for phase-1-gate before its first coded flip (4494d3d). The finding count is measured, but the universal chronology claim is false. Correct the authoritative Proof copy through properly scoped work, rerender it verbatim, and update its verification note.'
-      status: open
+      status: resolved
+      resolved_by: 'Label rewritten in docs/copy.md §Proof and rendered in Hero.astro: ''findings logged against this site''s own slices — every one public in the ledger, none ever removed''. Makes no authorship claim, so the f-006/7/8 exclusion the finding identified no longer applies; findings.yaml records no author field, so no such claim is recomputable anyway. ADR-0009 added to stop the recurrence: proof VALUES are Human-owned and a stale value is not a finding, while a false LABEL remains P2.'
