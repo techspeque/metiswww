@@ -55,12 +55,20 @@
  * protocol; `metis next -o json` returns ONE active-slice object, never a list
  * (deterministic dispatch, "gets dispatched one slice"); `metis commit --help`
  * lists `--brief`, `--flip coded|reviewed` and `--agent`, the last described
- * as "required with --flip reviewed for cross-vendor validation" ("the final
- * flip demands a different agent's identity"); scope and checklist auditing
+ * as "required with --flip reviewed for cross-vendor validation"; scope and
+ * checklist auditing
  * are `metis log <id> --validate`, `metis block` and `metis findings record`
  * ("audits scope and the checklist, then files findings"); and kickoff step 5
  * documents `metis verify`'s distinct exit codes 0/1/2 ("exit codes do the
  * arguing").
+ *
+ * "the final flip demands a different agent's identity" rests on a chain, and
+ * the chain is stated rather than implied: the CLI requires an identity on that
+ * flip (`--agent`, above), AGENTS.md hard rule 4 forbids reviewing your own
+ * work, and every archived slice in this repository's ledger records a reviewer
+ * slug different from its coder. What was NOT observed is metis rejecting the
+ * coder's own slug at the flip, so the caption claims what the tooling plus the
+ * contract require, not a rejection anyone watched happen.
  *
  * One deck claim is NOT verifiable from this page and is recorded as an
  * advisory finding rather than silently rendered as true or quietly reworded:
@@ -110,7 +118,7 @@
  * --- Motion --------------------------------------------------------------
  *
  * Reveal (ADR-0005): the section opts into the page's shared observer with
- * `data-reveal`, and its six blocks carry `.reveal` so they arrive in reading
+ * `data-reveal`, and its seven blocks carry `.reveal` so they arrive in reading
  * order — heading, lead, the four turns in sequence, then the closing line.
  * This component declares no animation of its own, only `--reveal-delay`
  * custom properties that index.astro's rule reads; they are inert until
