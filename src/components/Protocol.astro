@@ -2,8 +2,16 @@
 /**
  * Protocol — the slice lifecycle (pending → coded → reviewed → done, with the
  * blocked → rework return path) as an inline diagram with a staged,
- * scroll-triggered reveal. This carries the site's ONE permitted script
- * (ADR-0002).
+ * scroll-triggered reveal.
+ *
+ * This component used to carry the site's one permitted script (ADR-0002).
+ * ADR-0005 generalised that script into a shared observer owned by
+ * index.astro: the section now opts in with `data-reveal` like every other
+ * section, and receives the same `is-revealed` class from the page. The
+ * staged CSS below is unchanged — it was already keyed off that class, which
+ * is what made the generalisation a deletion rather than a rewrite. What was
+ * lost with the local script is nothing: it observed this same section
+ * element, at the same default threshold, and unobserved on first hit.
  *
  * Copy is rendered verbatim from docs/copy.md §Protocol (ADR-0003: the copy
  * deck is the single source of truth). Every copy string sits on ONE source
@@ -68,31 +76,26 @@
  * backwards` holding each state's start frame through its stagger delay —
  * that is what avoids an `opacity: 0` base. With JS off, the observer
  * unsupported, or reduced motion set, the diagram is complete and static,
- * never hidden (ADR-0005's never-invisible rule, ahead of its slice).
+ * never hidden (ADR-0005's never-invisible rule).
  *
- * The script at the foot of this file is the one the site is allowed
- * (ADR-0002). `is:inline` is required: a processed script element would be
- * bundled into an external module, and the policy is an *inline* observer.
- * is:inline is passed through verbatim and is not minified, so it is written
- * hand-minified on one line.
+ * `data-reveal` is on the section rather than on the diagram, and the class
+ * therefore lands on the section too — which is what keeps the scoped
+ * selectors below matching, since the section is declared here. Watching the
+ * section is also the only correct choice: intersectionRatio is a fraction of
+ * the target's own height, so a fractional threshold on a diagram taller than
+ * the viewport could never be met on a narrow phone and the reveal would
+ * never fire. index.astro's observer sets no threshold for exactly that
+ * reason.
  *
- * It watches the section rather than the diagram: intersectionRatio is a
- * fraction of the target's own height, so a threshold on a diagram taller
- * than the viewport could never be met on a narrow phone and the reveal would
- * never fire. Watching the section at the default threshold also arms the
- * stagger at the heading, before the states scroll up into view. The class
- * lands on an element declared in this component, which is what lets Astro's
- * scoped selectors match it. Unobserves on first hit — the reveal plays once.
- *
- * This rationale lives in the frontmatter, not in an HTML comment beside the
- * script: frontmatter comments are compiled away, and an HTML comment naming
- * a script element literally would survive into dist and break the phase
- * gate's "exactly one script element in dist/index.html" count.
+ * The h2 and the closing line take the page's generic `.reveal` treatment;
+ * the diagram itself does not, because the staged rules below already are its
+ * reveal. Putting `.reveal` on the <ol> as well would fade the whole diagram
+ * in on top of its own staging.
  */
 ---
 
-<section id="protocol" class="section">
-  <h2>One slice at a time. Every time.</h2>
+<section id="protocol" class="section" data-reveal>
+  <h2 class="reveal">One slice at a time. Every time.</h2>
 
   <ol class="lifecycle" role="list">
     <li class="state">pending — dispatched by metis next, never chosen by the agent</li>
@@ -101,7 +104,7 @@
     <li class="state">done — archived with the full paper trail</li>
   </ol>
 
-  <p class="closing">Findings become rules. Rules prevent repeats. The system gets better because it remembers.</p>
+  <p class="closing reveal">Findings become rules. Rules prevent repeats. The system gets better because it remembers.</p>
 </section>
 
 <style>
@@ -360,6 +363,13 @@
       transform: none;
     }
   }
-</style>
 
-<script is:inline>new IntersectionObserver((es,o)=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add("is-revealed");o.unobserve(e.target)}})).observe(document.getElementById("protocol"))</script>
+  /* The closing line lands on the same beat as the loop chip, the last piece
+     of the diagram to arrive, so the section settles as one gesture rather
+     than trailing a straggler. The h2 takes the page rule's 0ms default and
+     needs no declaration. Delays are inert custom properties until that
+     rule reads them, so no media query is needed here. */
+  .closing {
+    --reveal-delay: 560ms;
+  }
+</style>

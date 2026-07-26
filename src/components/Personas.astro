@@ -10,21 +10,26 @@
  * Layout: one column by default, two side by side from 768px up. Mobile-first
  * so the narrow layout needs no media query at all.
  *
- * No animation here: section reveals are phase 2 (ADR-0005), and this slice
- * keeps dist free of any <script>.
+ * Reveal (ADR-0005): the section opts into the page's shared observer with
+ * `data-reveal`. The two columns carry `.reveal` individually rather than the
+ * `.columns` grid wrapper carrying it once — a split is the point of this
+ * section, so the halves arriving one after the other reads as the idea,
+ * where fading the pair in as one block would not. Nothing sets a hidden base
+ * state: the rules below render the finished section and the reveal is opt-in
+ * motion layered on top (the never-invisible rule).
  */
 ---
 
-<section id="personas" class="section">
-  <h2>Two personas, one binary.</h2>
+<section id="personas" class="section" data-reveal>
+  <h2 class="reveal">Two personas, one binary.</h2>
 
   <div class="columns">
-    <div class="column">
+    <div class="column reveal">
       <h3>The developer</h3>
       <p>You own the spec, the plan, and the priorities. metis gives you a ledger you can trust, review evidence you can audit, and a registry to run it across every project you own.</p>
     </div>
 
-    <div class="column">
+    <div class="column reveal">
       <h3>The agent</h3>
       <p>Agents get a printed protocol: one slice at a time, a brief committed before code, machine-checked scope, and a review they cannot perform on themselves.</p>
     </div>
@@ -71,5 +76,24 @@
     /* The grid track already sets the measure; --measure would over-constrain
        the column on wide viewports. */
     max-width: none;
+  }
+
+  /* --- Reveal stagger ----------------------------------------------------
+     Choreography only: index.astro owns the animation, this component owns
+     the order. The delays are inert custom properties until that rule reads
+     them, which happens only once `is-revealed` lands and only outside
+     reduced motion — so no media query is needed here.
+
+     The h2 takes the 0ms default. Both columns then arrive left-to-right,
+     the same direction the row is read in, 80ms apart. This deliberately
+     ignores the 768px stack: at narrow widths the columns are already in
+     document order top to bottom, and the same two delays read as the same
+     sequence. */
+  .column:first-child {
+    --reveal-delay: 80ms;
+  }
+
+  .column:last-child {
+    --reveal-delay: 160ms;
   }
 </style>

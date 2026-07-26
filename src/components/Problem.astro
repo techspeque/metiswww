@@ -17,24 +17,28 @@
  * dist/index.html would fail a literal grep for the list item. The failure
  * list is "styled" through the list marker, dividers and spacing only.
  *
- * No animation here: section reveals are phase 2 (ADR-0005), and this slice
- * keeps dist free of any <script>.
+ * Reveal (ADR-0005): the section opts into the page's shared observer with
+ * `data-reveal`, and its four blocks carry `.reveal` so they fade up in
+ * reading order. The stagger delays live in the style block below; the
+ * mechanism lives in index.astro. Nothing here sets a hidden base state — the
+ * rules below render the finished section, and the reveal is opt-in motion
+ * layered on top (the never-invisible rule).
  */
 ---
 
-<section id="problem" class="section">
-  <h2>A single long agent session drifts.</h2>
+<section id="problem" class="section" data-reveal>
+  <h2 class="reveal">A single long agent session drifts.</h2>
 
-  <p class="lead">It loses scope. It re-explores code it already understood. It fixes things nobody asked it to fix — and then it marks its own homework.</p>
+  <p class="lead reveal">It loses scope. It re-explores code it already understood. It fixes things nobody asked it to fix — and then it marks its own homework.</p>
 
-  <ul class="failures">
+  <ul class="failures reveal">
     <li>Scope creep — files touched that no one asked for</li>
     <li>Self-review — the author grading the author</li>
     <li>Lost context — every session re-discovers the last one</li>
     <li>Mechanical fumbles — walking YAML, comparing slugs, evaluating booleans</li>
   </ul>
 
-  <figure class="insight">
+  <figure class="insight reveal">
     <blockquote>
       <p>Everything an agent fumbles should be deterministic tooling, not agent judgment.</p>
     </blockquote>
@@ -113,5 +117,27 @@
     margin-block-start: var(--space-3);
     font-size: var(--text-sm);
     color: var(--color-muted);
+  }
+
+  /* --- Reveal stagger ----------------------------------------------------
+     Choreography only: this component decides the order its blocks arrive
+     in, index.astro owns the animation itself. The delays are plain custom
+     properties, so they are inert until the page's rule reads them — which
+     it only does once `is-revealed` lands and only outside reduced motion.
+     No media query is needed here for the same reason.
+
+     80ms apart, four blocks, last one starting at 240ms: the section is
+     fully settled 540ms after it arms, well inside a single scroll gesture.
+     The h2 takes the 0ms default and so needs no declaration. */
+  .lead {
+    --reveal-delay: 80ms;
+  }
+
+  .failures {
+    --reveal-delay: 160ms;
+  }
+
+  .insight {
+    --reveal-delay: 240ms;
   }
 </style>

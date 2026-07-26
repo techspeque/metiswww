@@ -35,22 +35,29 @@
  * sibling now (ADR-0004) — so the shared `.section` hairline below it reads as
  * the rule that separates page content from the footer.
  *
- * No animation: section reveals are phase 2 (ADR-0005), and nothing here needs
- * a script.
+ * Reveal (ADR-0005): the section opts into the page's shared observer with
+ * `data-reveal`, and its four blocks carry `.reveal` so they arrive in the
+ * order they are meant to be executed in — headline, the command you run,
+ * the alternatives if that one does not suit, then what to do next. Nothing
+ * sets a hidden base state: the rules below render the finished section and
+ * the reveal is opt-in motion layered on top (the never-invisible rule).
+ * That matters more here than anywhere else on the page — this section is
+ * the install command, and it has to be readable and copyable for a visitor
+ * with JS disabled.
  */
 ---
 
-<section id="install" class="section">
-  <h2>Two minutes to a governed project.</h2>
+<section id="install" class="section" data-reveal>
+  <h2 class="reveal">Two minutes to a governed project.</h2>
 
   <pre
-    class="one-liner"><code>curl -fsSL https://raw.githubusercontent.com/techspeque/metis/main/scripts/install.sh | bash</code></pre>
+    class="one-liner reveal"><code>curl -fsSL https://raw.githubusercontent.com/techspeque/metis/main/scripts/install.sh | bash</code></pre>
 
-  <p class="alternatives">or go install github.com/techspeque/metis/cmd/metis@latest, or grab a <a
+  <p class="alternatives reveal">or go install github.com/techspeque/metis/cmd/metis@latest, or grab a <a
       href="https://github.com/techspeque/metis/releases"
       rel="noopener">release</a>.</p>
 
-  <p class="verify">then: metis init — it prints every next step.</p>
+  <p class="verify reveal">then: metis init — it prints every next step.</p>
 </section>
 
 <style>
@@ -84,5 +91,26 @@
   .verify {
     margin-block-start: var(--space-4);
     color: var(--color-text);
+  }
+
+  /* --- Reveal stagger ----------------------------------------------------
+     Choreography only: index.astro owns the animation, this component owns
+     the order. The delays are inert custom properties until that rule reads
+     them, which happens only once `is-revealed` lands and only outside
+     reduced motion — so no media query is needed here.
+
+     80ms apart, in execution order, the h2 taking the 0ms default. The
+     one-liner is second on purpose: it is the thing the visitor came for,
+     so it should not be waiting behind the two lines that qualify it. */
+  .one-liner {
+    --reveal-delay: 80ms;
+  }
+
+  .alternatives {
+    --reveal-delay: 160ms;
+  }
+
+  .verify {
+    --reveal-delay: 240ms;
   }
 </style>
