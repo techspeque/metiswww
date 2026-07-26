@@ -57,3 +57,10 @@ findings:
       category: doc
       finding: 'tokens.css:66 documents the light-scheme hairline pairing ''border #E2DBCB on #FAF7F0 ... 1.10:1'' but the true sRGB-relative-luminance ratio is 1.29:1. Independent recomputation of the whole ratio table reproduced 11 of 12 other rows to the hundredth (17.68, 8.39, 8.17, 4.68, 16.14, 7.66, 7.46, 5.66, 5.53, 5.87, 18.91, 6.06), which is what isolates this row as the error rather than the method. No AA consequence: the token is decorative/non-text in both schemes and both values are far below the 3:1 informational-boundary threshold. Phase-0 artifact (slice phase-0-ws-0.1), surfaced by the phase-1 gate''s contrast recomputation. Fix: correct the number in the table row.'
       status: advisory
+    - id: f-009
+      date: "2026-07-26"
+      slice: phase-1-gate
+      severity: P2
+      category: protocol
+      finding: Phase gate copy audit fails its declared criterion. .metis/plans/phase-1.md:139-141 requires every rendered string to be traceable to docs/copy.md, and ADR-0003 pins docs/copy.md as the copy source, but src/pages/index.astro:23-25 authors the rendered title and meta description outside that deck. The gate brief itself says this criterion is 'not literally met' while still returning PASS. Add the title and description verbatim to a Meta section in docs/copy.md (or formally amend the governing requirement through planning), then rerun the gate evidence and review.
+      status: open
