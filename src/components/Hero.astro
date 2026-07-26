@@ -35,8 +35,15 @@
  * Three ledger-measured numbers plus one labeled estimate. Under ADR-0008 the
  * numbers are static strings carrying an as-of date, not fetched values
  * (OVERVIEW §2.2 forbids client-side data fetching), and each one has a
- * verification note in docs/copy.md §Proof that the reviewer recomputes. Two
- * things here are load-bearing and must survive any edit:
+ * verification note in docs/copy.md §Proof.
+ *
+ * ADR-0009 amends who those notes bind. They document the method so a READER
+ * can audit a number; they no longer oblige an agent to recompute one. The
+ * §Proof values are Human-owned: render them verbatim, do not recompute them,
+ * do not raise a finding when one is stale, and do not "correct" one here.
+ * What is still a P2 is a *label* that makes a false claim — a stale value is
+ * not a finding, a false label is. Two things are load-bearing and must
+ * survive any edit:
  *
  *   - Stat 4's "est." prefix and "at best observed" qualifier. It is the one
  *     figure on the site that is NOT ledger-recomputable, and ADR-0008 admits
@@ -273,11 +280,17 @@
 
      Two rows of two, then one row of four. The column gap goes to zero here
      because the divider rule now does the separating and the cell padding
-     supplies the air — a gap on top of both would read as a broken table. */
+     supplies the air — a gap on top of both would read as a broken table.
+
+     Every spacing zero below reads --space-0 rather than a literal 0: the
+     token scale defines the zero step, so spacing comes off the scale even
+     when it is nothing (the f-003 rule). Border WIDTHS stay literal — they
+     are not spacing, tokens.css defines no border scale, and the hairlines
+     throughout this file are already written `1px solid`. */
   @media (min-width: 640px) {
     .stats {
       grid-template-columns: repeat(2, 1fr);
-      column-gap: 0;
+      column-gap: var(--space-0);
       row-gap: var(--space-5);
     }
 
@@ -289,7 +302,7 @@
     /* First cell of each row: no divider, and flush with the left edge so the
        numbers align with the headline above them. */
     .stat:nth-child(odd) {
-      padding-inline-start: 0;
+      padding-inline-start: var(--space-0);
       border-inline-start: 0;
     }
   }
@@ -308,7 +321,7 @@
     }
 
     .stat:first-child {
-      padding-inline-start: 0;
+      padding-inline-start: var(--space-0);
       border-inline-start: 0;
     }
   }

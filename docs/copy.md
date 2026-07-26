@@ -112,8 +112,15 @@ at a time replaces session-long re-exploration
 ledger as of 2026-07-26; the fourth is a labeled estimate —
 [audit the ledger](https://github.com/techspeque/metiswww).
 
-> Verification notes (ADR-0008 — recompute before approving, re-run before
-> any refresh):
+> Verification notes. Under ADR-0008 these bound the reviewer, who had to
+> recompute each number before approving. ADR-0009 withdraws that: the values
+> are Human-owned, agents render them verbatim and never recompute them, and a
+> stale value is not a finding. What the notes are FOR now is the reader — the
+> caption invites an audit, and these are the methods that make it possible —
+> and the Human, who re-runs all four and re-dates the caption once before the
+> dev → main merge. What a reviewer still checks, each still a P2: stat 4's
+> `est.` prefix and "at best observed" qualifier render intact, the caption's
+> as-of date renders, and no label makes a false claim.
 >
 > - **9/9:** count entries in `.metis/slices-done.yaml` (9: phase-0 ws
 >   0.1–0.3 + gate, phase-1 ws 1.1–1.4 + gate); every entry has

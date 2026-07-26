@@ -27,8 +27,12 @@ subline.
   values in the display face, labels muted; tokens only
 - Mobile-first: stats stack on narrow viewports, row out where space
   allows; must not reintroduce the f-006 class of sub-375px overflow
-- ADR-0008 binds the reviewer: recompute every number via the §Proof
-  verification notes; a mismatch is a P2 behavior finding
+- ~~ADR-0008 binds the reviewer: recompute every number via the §Proof
+  verification notes; a mismatch is a P2 behavior finding~~ — **superseded
+  in review cycle 1 by ADR-0009** (added by this slice). The §Proof values
+  are Human-owned: agents render them verbatim, never recompute them, and a
+  stale value is not a finding. A false *label* remains a P2. See the
+  ADR-0009 section below
 
 ## Declared file scope
 
@@ -53,25 +57,35 @@ subline.
 - Four stats + kicker + caption render verbatim from §Proof; caption
   links to https://github.com/techspeque/metiswww; vendor line renders
   verbatim beneath the subline
-- Reviewer's recomputation of the three measured numbers matches; the
-  estimate's label and qualifier are intact
-- No new script tags; token discipline; AA contrast both schemes
+- The estimate's `est.` prefix and "at best observed" qualifier are intact,
+  and the caption's as-of date renders. **No recomputation of the values is
+  required or wanted** (ADR-0009, added by this slice): they are Human-owned,
+  agents render them verbatim, and a stale value is not a finding. A label
+  that makes a false claim is still a P2 — that is what f-011 was
+- No new script tags; token discipline (spacing zeros read `var(--space-0)`,
+  per f-003); AA contrast both schemes
 - npm run verify green
 
 ## Test plan
 
 - Build and inspect dist: strip + vendor line present, copy byte-identical
   to the deck
-- Recompute measured stats per §Proof verification notes (slices-done
-  count, findings count, scope-audit state); confirm `est.` renders on
-  stat 4; re-verify the vendor line's surface claims against
-  `metis surface generate` docs/output
+- Confirm `est.` and "at best observed" render on stat 4 and the caption's
+  as-of date renders; confirm no label asserts something the ledger
+  contradicts. **Do not recompute the values** — ADR-0009 (added by this
+  slice) makes them Human-owned and a stale value a non-finding. Re-verify
+  the vendor line's surface claims against `metis surface generate`
+  docs/output
 - Both schemes spot-checked; narrow-viewport check at 320/360/375px
   (documentElement scrollWidth == clientWidth)
 
 ## Out-of-scope touches
 
-None. docs/copy.md stays read-only — see the deferral below.
+None. docs/copy.md was read-only as originally scoped, and stayed so through
+review cycle 0. In cycle 1 it became an **owned** path on the product owner's
+authorisation, to fix the false label f-011 identified — see "Declared file
+scope" above for the widening and its rationale. It is therefore not an
+out-of-scope touch; it is declared scope.
 
 ## Scope amendment (review cycle 1, product owner)
 
@@ -194,8 +208,9 @@ note cites is visible in `.metis/slices-done.yaml` (phase-1 entries:
 visibility` → `PUBLIC`, so the caption's invitation is live for a visitor
 today rather than only after the dev → main merge.
 
-Separately, and also not edited: the §Proof blockquote at docs/copy.md:85-86
-("No estimates render on the site unless visibly labeled `est.`; none are
-used here") contradicts stat 4, which *is* a labeled estimate. It is an
-authoring note, not rendered copy, so nothing on the site is affected — one
-for the same refresh chore.
+The §Proof blockquote used to read "No estimates render on the site unless
+visibly labeled `est.`; none are used here", which contradicted stat 4 — an
+estimate. **Fixed in cycle 1** in the same pass that fixed the label, once
+docs/copy.md became an owned path; it now states that one estimate is used
+and renders labeled. This note is retained as the record of the defect, not
+as an outstanding item.
