@@ -45,3 +45,7 @@ Feeds back into metis hardening. Session: 2026-07-25, metis v0.0.5.
 ## From the gate fix cycle
 25. `metis commit -m` prefix doubling RECURRING (second occurrence, see #9) — and the doubled subject passes metis's own format check, so nothing flags it; commit should detect/strip an already-present prefix
 26. No re-flip affordance — post-flip content edits leave the flip mid-history; either guidance ("finalize before flipping") or a re-flip path
+
+## From the gate review cycle 2
+27. No `metis findings resolve <id>` — addressed findings stay "open" forever unless the YAML is hand-edited; the findings ledger accumulates stale entries across cycles
+28. Gate slices' scope audit is explicitly N/A in log --validate — correct, but the protocol should state the reviewer's gate-scope check is manual git inspection
