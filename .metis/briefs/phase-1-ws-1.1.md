@@ -51,6 +51,10 @@ Three decisions a reviewer would otherwise have to re-derive:
    from URL; compare §NotFound, where "← Back to metis" is written inline
    because there the arrow is part of the label.
 
+Hex values appear in Hero.astro only inside contrast-documentation comments,
+mirroring the convention tokens.css uses for its own ratio table. No raw
+colour, size or spacing value is used at a point of use.
+
 The two brace-only transcript lines are written as `{"{"}` / `{"}"}` — a bare
 brace opens an Astro expression, and HTML entities would have put `&#123;`
 in the built output and broken the byte-for-byte criterion.

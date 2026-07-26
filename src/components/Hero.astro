@@ -34,11 +34,10 @@
 <section id="hero" class="section hero">
   <h1 class="headline">Your agents are brilliant. Their process isn't.</h1>
 
-  <p class="subline">
-    metis is the meta-harness for AI coding agents — deterministic dispatch,
-    scope as a contract, and cross-vendor review, enforced by exit codes
-    instead of hope.
-  </p>
+  <!-- Kept on one source line: HTML would collapse a wrapped version to the
+       same rendered text, but this way the built output greps literally
+       against docs/copy.md §Hero. -->
+  <p class="subline">metis is the meta-harness for AI coding agents — deterministic dispatch, scope as a contract, and cross-vendor review, enforced by exit codes instead of hope.</p>
 
   <figure class="terminal">
     <pre class="transcript"><code><span class="line cmd">$ metis next -o json</span>
@@ -165,7 +164,11 @@
     color: var(--color-bg);
   }
 
+  /* The border is this control's only boundary cue, so it carries information
+     and needs 3:1 (WCAG 1.4.11) — --color-border is a 1.40:1 hairline meant
+     for decorative rules. --color-muted is 8.39:1 dark / 5.66:1 light. */
   .cta--secondary {
+    border-color: var(--color-muted);
     color: var(--color-text);
   }
 
