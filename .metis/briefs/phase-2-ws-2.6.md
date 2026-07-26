@@ -56,6 +56,28 @@ Read ADR-0007 in full before coding. Summary of the binding parts:
   operable with correct aria state
 - npm run verify green; existing greps (hex, landmarks) unchanged
 
+## Implementation decisions (coder, recorded before the code commit)
+
+- **"Reserve its box" is met by taking the box out of flow.** ADR-0007 asks
+  for no layout shift when the button un-hides and names a reserved box as
+  the means. The toggle's bar is absolutely positioned instead: an
+  out-of-flow box contributes nothing to layout at any point, so there is
+  no shift to reserve against — the stronger guarantee of the same
+  property, and it does not cost every visitor ~48px of dead space above
+  the hero (including the no-JS ones who never get the control). Rationale
+  is repeated at the CSS in Base.astro.
+- **No `<header>` wrapper.** Wrapping the button would add a `banner`
+  landmark the page does not have today (empty for no-JS visitors) and
+  would change the landmark set this slice's DoD asks to leave unchanged.
+- **`aria-pressed` is defined as "the light scheme is active".** Pairing a
+  pressed state with an action-phrased label ("Switch to dark theme,
+  pressed") is an acknowledged ARIA tension, but ADR-0007 mandates syncing
+  `aria-pressed` and the label wording is fixed by the copy deck. One
+  consistent definition, stated in Base.astro's frontmatter.
+- **Visible affordance:** the two-tone disc explicitly sanctioned by
+  docs/copy.md §ThemeToggle, drawn in CSS, no text, no emoji. The
+  accessible name carries the meaning.
+
 ## Test plan
 
 - Build; grep script count/sizes/positions in dist/index.html
