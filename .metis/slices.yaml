@@ -1,15 +1,2 @@
 version: 1
-slices:
-    - id: phase-2-gate
-      title: 'Phase 2 gate: composed-system validation'
-      type: gate
-      priority: p2
-      risk: high
-      coder: claude-code/opus
-      reviewer: opencode/gpt-5.6-sol
-      plan: .metis/plans/phase-2.md
-      plan_section: Phase Gate
-      coded: false
-      reviewed: false
-      review_cycles: 0
-      created: ""
+slices: []
