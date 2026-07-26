@@ -50,8 +50,9 @@ and the version badge links to GitHub releases rather than being fetched.
 ```
 src/
 ├── pages/          # index.astro (v1 is a single page)
-├── components/     # Hero, Persona split, Protocol diagram, Install, Footer
-├── layouts/        # Base layout: head, fonts, theme, OG tags
+├── components/     # Hero (+ proof strip), Persona split, Protocol diagram,
+│                   # Workflow loop, Install, Footer
+├── layouts/        # Base layout: head, fonts, theme (+ manual toggle), OG tags
 └── styles/         # design tokens (colors, spacing, type scale), global css
 ```
 
@@ -68,9 +69,10 @@ reviewable — one component (or one tightly-related group) per slice.
 - **Build system:** npm; `npm run verify` = `astro check && astro build`
 - **Styling:** vanilla CSS with custom properties (design tokens). No
   Tailwind, no CSS framework — the design must feel authored, not assembled.
-- **Runtime:** static output only; zero client-side JS except where an
-  animation genuinely requires it (IntersectionObserver for scroll reveals
-  is acceptable; no framework hydration)
+- **Runtime:** static output only; zero client-side JS except the two
+  sanctioned inline scripts — the shared IntersectionObserver for
+  scroll-triggered motion (ADR-0005) and the pre-paint theme script for the
+  manual scheme toggle (ADR-0007). No framework hydration.
 
 ### 3.2 Design Constraints (binding — from the product owner)
 
@@ -91,6 +93,20 @@ reviewable — one component (or one tightly-related group) per slice.
   diagram animates pending → coded → reviewed → done on scroll; section
   reveals are subtle (opacity/translate, 200-300ms, ease-out). Everything
   respects `prefers-reduced-motion`. Nothing loops forever, nothing bounces.
+- **Proof over promises.** The hero carries a small strip of statistics
+  measured from this repository's own ledger (slices reviewed, findings
+  caught, scope audits). Every number is ledger-derived and recomputable
+  per ADR-0008 — no invented percentages; anything not measured is visibly
+  labeled an estimate.
+- **Manual scheme toggle.** Both schemes remain fully styled and
+  `prefers-color-scheme` stays the default. A small top-of-page toggle
+  (ADR-0007) lets the visitor override the OS preference, persisted in one
+  localStorage key. With JS disabled the toggle is absent and behavior is
+  identical to today.
+- **Workflow section.** Between Protocol and Install, a section shows how
+  metis is actually driven: two terminals — a coder agent and a reviewer
+  agent — trading four short prompts while the protocol carries the
+  context (copy: docs/copy.md §Workflow).
 
 ### 3.3 Non-Goals (do NOT build)
 
@@ -104,8 +120,12 @@ reviewable — one component (or one tightly-related group) per slice.
 ### 3.4 Invariants (must ALWAYS hold)
 
 - `npm run verify` (astro check + build) passes on every commit
-- Zero client-side JS beyond what animations strictly require
+- Zero client-side JS beyond the two sanctioned inline scripts
+  (ADR-0005 observer, ADR-0007 theme)
 - All color pairings meet WCAG AA; both color schemes fully styled
+- Every statistic rendered on the site is recomputable from this
+  repository's public ledger via the method recorded in docs/copy.md;
+  estimates must be visibly labeled (ADR-0008)
 - All copy about metis behavior must match the real CLI (commands shown on
   the site must exist with the shown flags — no aspirational output)
 - `prefers-reduced-motion` disables all non-essential animation
@@ -134,12 +154,22 @@ across all categories, GitHub Pages pipeline with base-path handling
 pre-authored; blocked on phase-1-gate. After the phase-2 gate passes, the
 human merges dev → main and the site ships.
 
+**Amendment A (2026-07-26):** three workstreams inserted between the
+reveals (2.1) and the accessibility/performance pass (2.2) — the hero
+proof strip (2.4, ADR-0008), the two-terminal workflow section (2.5), and
+the manual theme toggle (2.6, ADR-0007) — so 2.2 and the gate audit the
+finished UI, not a moving target. Execution order:
+2.1 → 2.4 → 2.5 → 2.6 → 2.2 → 2.3 → gate (ids 2.2/2.3 predate the
+amendment; ordering is enforced by `blocked_by`, not numbering).
+
 ---
 
 ## 5. Security Model
 
 Static site; no user data, no auth. Only concern: external links use
-`rel="noopener"`; no third-party scripts at all.
+`rel="noopener"`; no third-party scripts at all. The theme toggle persists
+a single localStorage key (`theme`) on the visitor's own device — no
+cookies, no tracking, nothing transmitted (ADR-0007).
 
 ---
 

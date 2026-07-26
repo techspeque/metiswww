@@ -65,6 +65,52 @@ $ █
 
 **Terminal caption:** This very page is a slice in metis's own ledger.
 
+## Proof (hero stats strip)
+
+> Rendered beneath the terminal caption (slice phase-2-ws-2.4). Governed by
+> ADR-0008: every number below is measured from THIS repository's public
+> ledger — the reviewer must recompute each one via its verification note.
+> No estimates render on the site unless visibly labeled `est.`; none are
+> used here.
+
+**Kicker (small, above the stats):** Dogfood numbers — this site, built
+under its own protocol
+
+**Stat 1 — value:** `9/9`
+**Stat 1 — label:** slices independently reviewed — never by their author
+
+**Stat 2 — value:** `10`
+**Stat 2 — label:** findings caught in review, all after the author had
+called the work done
+
+**Stat 3 — value:** `0`
+**Stat 3 — label:** out-of-scope files shipped — file scope is
+machine-audited on every slice
+
+**Caption (with link):** Measured from this repository's own ledger as of
+2026-07-26 — [audit every number](https://github.com/techspeque/metiswww).
+
+> Verification notes (ADR-0008 — recompute before approving, re-run before
+> any refresh):
+>
+> - **9/9:** count entries in `.metis/slices-done.yaml` (9: phase-0 ws
+>   0.1–0.3 + gate, phase-1 ws 1.1–1.4 + gate); every entry has
+>   `reviewed: true` and a `reviewer` slug different from its `coder`
+>   (phase 0: claude-code/opus vs claude-code/sonnet; phase 1:
+>   claude-code/opus vs opencode/gpt-5.6-sol).
+> - **10:** count entries in `.metis/findings.yaml` (f-001..f-010), or
+>   `metis findings`. "After the author had called the work done": under
+>   the protocol, review begins only after the coder's `coded` flip
+>   (`metis commit --flip coded`); every finding's `slice` field points at
+>   work whose flip preceded the finding — check the git history of
+>   `.metis/findings.yaml` against the flip commits.
+> - **0:** the one out-of-scope touch ever recorded (f-010,
+>   docs/copy.md outside the phase-1-gate brief's owned_paths) was caught
+>   by the scope audit and remediated before merge; final state verified
+>   via `metis log phase-1-gate --validate -o json` → `ok=true`,
+>   `out_of_scope_files=[]`. No other finding or validation reports an
+>   out-of-scope file.
+
 ## Problem
 
 **Section heading:** A single long agent session drifts.
@@ -114,6 +160,41 @@ they cannot perform on themselves.
 **Section footer line:** Findings become rules. Rules prevent repeats. The
 system gets better because it remembers.
 
+## Workflow
+
+> New section between Protocol and Install (slice phase-2-ws-2.5). The
+> four step lines are PROMPTS a human types to an agent — human words, not
+> shell commands — and must render visually distinct from CLI output (no
+> `$` prompt glyph on them). The parenthetical captions are behavior
+> claims and were verified against metis v0.0.6: `metis kickoff` emits the
+> session protocol, `metis next` performs deterministic dispatch,
+> `metis commit --flip reviewed` requires `--agent` for cross-vendor
+> validation, `metis verify` signals through distinct exit codes.
+
+**Section heading:** Run it from two terminals.
+
+**Lead:** One terminal codes. One terminal reviews. Neither sees the
+other's context — the ledger is the only shared state. Point them at
+different vendors and let the protocol referee.
+
+**The loop (four steps, alternating terminals):**
+
+1. **Terminal 1 — the coder:** "Go for dev of the next slice."
+   *(the agent runs `metis kickoff`, gets dispatched one slice, commits a
+   brief, codes inside its declared scope, flips `coded`)*
+2. **Terminal 2 — the reviewer:** "Go for review of the next slice."
+   *(a different agent audits scope and the checklist, then files
+   findings — or flips `reviewed`)*
+3. **Terminal 1 — the coder:** "Fix the findings from review."
+   *(rework lands on the same slice, same scope, same paper trail)*
+4. **Terminal 2 — the reviewer:** "Go for re-review — focus on the
+   findings." *(the loop repeats until clean; the final flip demands a
+   different agent's identity)*
+
+**Section footer line:** The prompts stay four words long because the
+protocol carries the context: `metis kickoff` prints the contract,
+`metis next` picks the slice, and exit codes do the arguing.
+
 ## Install
 
 **Section heading:** Two minutes to a governed project.
@@ -135,6 +216,19 @@ ledger. [Read the audit trail](https://github.com/techspeque/metiswww).
 **Links:** GitHub · Docs · Releases · MIT License
 
 **Copyright line:** © 2026 techspeque
+
+## ThemeToggle
+
+> Chrome, not body copy (slice phase-2-ws-2.6, ADR-0007). The button is
+> hidden until the theme script enables it; no-JS visitors never see it.
+
+**Accessible label when dark is active:** Switch to light theme
+**Accessible label when light is active:** Switch to dark theme
+
+> Visible affordance is the implementer's choice within OVERVIEW §3.2
+> (no emoji; suggestion: the words "Light" / "Dark" or a two-tone disc
+> drawn in CSS). The accessible name must be one of the two labels above,
+> verbatim.
 
 ## NotFound (404 page)
 
