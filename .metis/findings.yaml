@@ -50,3 +50,10 @@ findings:
       category: protocol
       finding: 'Rendered site copy exists outside docs/copy.md, which ADR-0003 pins as the single copy source. src/pages/index.astro:23-25 authors the <title> (''metis - the meta-harness for AI coding agents'') and the meta description, which Base.astro renders into <title>, <meta name=description> and all four og:/twitter: title+description tags. docs/copy.md has no Meta section, so these are the only rendered strings the phase-1 gate''s Scenario 2 (''every rendered string traceable to docs/copy.md'') cannot trace. They are substantively accurate against metis 0.0.6 -- ''one slice at a time'' matches metis next -o json returning a single active-slice object, ''file scope as a contract'' matches metis log --validate auditing files vs the brief''s owned_paths, ''cross-vendor review'' matches --agent being required with --flip reviewed -- so the OVERVIEW 3.4 copy-accuracy invariant holds and no build defect exists. This is an authority gap in ADR-0003''s coverage. They predate the deck (phase 0) and no phase-1 workstream owned index.astro. Fix: add a Meta section to docs/copy.md carrying the title and description verbatim, or scope ADR-0003''s rule explicitly to body copy.'
       status: advisory
+    - id: f-008
+      date: "2026-07-26"
+      slice: phase-1-gate
+      severity: P3
+      category: doc
+      finding: 'tokens.css:66 documents the light-scheme hairline pairing ''border #E2DBCB on #FAF7F0 ... 1.10:1'' but the true sRGB-relative-luminance ratio is 1.29:1. Independent recomputation of the whole ratio table reproduced 11 of 12 other rows to the hundredth (17.68, 8.39, 8.17, 4.68, 16.14, 7.66, 7.46, 5.66, 5.53, 5.87, 18.91, 6.06), which is what isolates this row as the error rather than the method. No AA consequence: the token is decorative/non-text in both schemes and both values are far below the 3:1 informational-boundary threshold. Phase-0 artifact (slice phase-0-ws-0.1), surfaced by the phase-1 gate''s contrast recomputation. Fix: correct the number in the table row.'
+      status: advisory
