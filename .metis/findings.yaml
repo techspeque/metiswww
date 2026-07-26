@@ -13,3 +13,10 @@ findings:
       category: protocol
       finding: 'Scenario 5 (copy-accuracy) scopes its check to ''the six section components (src/components/*.astro) that carry all page copy'' and concludes the OVERVIEW.md §3.4 copy-accuracy invariant is ''vacuously satisfied -- no CLI claims exist.'' That scope statement is inaccurate: src/pages/index.astro:16-18 also carries page copy -- the <title> and og:description meta text (''metis governs AI coding agents with a disciplined protocol: one slice at a time, file scope as a contract, and cross-vendor review...'') -- which Scenario 5 never examined. This IS copy about metis behavior, so the invariant is not vacuously satisfied (nothing to check) but substantively satisfied (a real behavioral claim that happens to match reality: one slice at a time matches the ledger''s single active-slice model, file scope as a contract matches brief owned_paths, cross-vendor review matches the instructions'' ''Reviews are cross-vendor by default''). The underlying invariant holds -- this is not a build defect -- but the report''s evidence trail misstates its own scope and mischaracterizes vacuous vs. substantive satisfaction, the same class of evidence-completeness gap as f-001. Fix: extend Scenario 5''s Setup to include src/pages/index.astro''s title/description, and correct the verdict language from ''vacuously satisfied'' to reflect the one substantive (and accurate) behavioral claim found there.'
       status: open
+    - id: f-003
+      date: "2026-07-26"
+      slice: phase-1-ws-1.2
+      severity: P3
+      category: maint
+      finding: 'src/components/Problem.astro:62 uses raw padding: 0 despite the slice acceptance criterion requiring spacing via --space-* only and tokens.css defining --space-0. Replace it with padding: var(--space-0).'
+      status: open
