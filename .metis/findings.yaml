@@ -28,3 +28,10 @@ findings:
       category: ""
       finding: 'Advisory (non-blocking): Lightning CSS rewrites Personas.astro:49''s ''@media (min-width: 768px)'' to media-query range syntax ''@media (width>=768px)'' in dist/_astro/*.css. Semantically identical, but range syntax is unsupported before Chrome 104 / Safari 16.4 / Firefox 63, where the query is dropped and the personas render single-column at all widths. That degradation is benign because the layout is mobile-first (one column is the base rule), and this is the project''s first min-width query so no prior slice exposed it. Worth a deliberate decision in phase 2 alongside the Lighthouse/browser-support work (ws-2.2) — either accept it or set an Astro build target that keeps the legacy syntax.'
       status: advisory
+    - id: f-005
+      date: "2026-07-26"
+      slice: phase-1-ws-1.3
+      severity: P2
+      category: behavior
+      finding: 'Protocol.astro:68,75,183-213 does not convey the required blocked/rework return loop: the label sits after done in semantic/CSS-disabled order, while the rendered dashed riser has no direction and connects only to the gap between coded and reviewed rather than leaving reviewed and returning to coded. Additionally, the order-carrying <ol> at lines 68-73 uses list-style:none without role="list", so WebKit/VoiceOver can drop the list semantics the accessibility rationale relies on.'
+      status: open
