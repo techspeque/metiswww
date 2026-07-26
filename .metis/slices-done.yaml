@@ -153,3 +153,17 @@ slices:
       review_cycles: 2
       notes: 'Amendment A2: also renders the §Hero vendor line and the fourth (est.) token-spend stat — see updated brief and copy deck'
       created: "2026-07-26"
+    - id: phase-2-ws-2.5
+      title: Workflow section — run it from two terminals
+      type: feat
+      priority: p2
+      risk: medium
+      stage: polish
+      coder: claude-code/opus
+      reviewer: opencode/gpt-5.6-sol
+      plan: .metis/plans/phase-2.md
+      plan_section: §2.5
+      coded: true
+      reviewed: true
+      review_cycles: 0
+      created: "2026-07-26"
