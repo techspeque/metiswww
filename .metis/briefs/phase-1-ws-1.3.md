@@ -96,8 +96,26 @@ have to rediscover them:
   on the chain's own vertical spine when stacked. In the stacked layout the
   chip necessarily sits below `done`, because it follows the `<ol>` in
   document order; its dashed stroke marks it as a branch off the solid main
-  flow rather than a fifth state. Moving it mid-list would either break the
-  four-state `<ol>` or duplicate the label, so this is the accepted trade.
+  flow rather than a fifth state. CSS cannot row-align it to the third card
+  either: the states are grid items of the `<ol>`, so a section-level grid
+  would need `display: contents` on the `<ol>` — which strips the list
+  semantics the diagram's reading order depends on — and absolute
+  positioning would need a magic offset that breaks as soon as a caption
+  wraps. A fragile layout hack is worse than the documented trade.
+
+## Open question for the reviewer
+
+`.lifecycle` is an `<ol>` with `list-style: none`. WebKit is known to drop
+the list role from a list styled that way unless an explicit `role="list"` is
+present, which would weaken the "the `<ol>` carries the order" argument that
+justifies the decorative connectors — for VoiceOver specifically, not for the
+CSS-disabled case (markers return when the stylesheet is gone) and not for
+DOM reading order (each caption still opens with its state name). I have not
+verified the behaviour in a real screen reader, and the dispatch has moved to
+Reviewer, so this is raised rather than changed. If it holds, `role="list"`
+on the `<ol>` is the whole fix. Note it does not transfer to
+`Problem.astro`'s list, which is out of scope here and whose order is not
+semantic.
 
 ## Test plan
 
@@ -112,9 +130,15 @@ against `astro preview`:
   no attributes, **177 bytes** of inline content (limit 600), contains
   `IntersectionObserver`; 0 `src=` script refs and 0 `.js`/`.mjs` files in
   `dist/`. Built CSS 12,779 bytes (gate limit 50KB)
-- Copy: all 7 strings from docs/copy.md §Protocol found byte-for-byte in
-  `dist/index.html` (`grep -F` per string), including `blocked → rework`; no
-  `&mdash;`/`&rarr;` entities anywhere in dist
+- Copy: §Protocol carries **eight** copy-marked entries. The seven that are
+  rendered strings — the section heading, the four captions, the loop label
+  and the section footer line — were each found byte-for-byte in
+  `dist/index.html` (`grep -F` per string), including `blocked → rework`.
+  The eighth, "Diagram states (in order): pending → coded → reviewed → done",
+  is deliberately not grepped as a string: it is a structural spec, and the
+  state names render as the first word of each caption with the `<ol>`
+  carrying the order (implementation note 3). No `&mdash;`/`&rarr;` entities
+  anywhere in dist
 - Scroll trigger: at page top the section carries only `class="section"` and
   every state and the chip already compute to `opacity: 1` — content is never
   hidden. On scrolling in, the class becomes `section is-revealed` and the
