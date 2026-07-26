@@ -1,15 +1,81 @@
 ---
 /**
  * Home page — the single page for v1 (OVERVIEW.md §2.3).
- * Composes the six placeholder section components in order inside one <main>
- * landmark, rendered through Base.astro. Container styling consumes tokens
- * only; section internals are styled by each component's own scoped styles.
+ * Composes the six content sections in order inside one <main> landmark, with
+ * the Footer as a sibling of <main> rather than its last child (ADR-0004: a
+ * footer nested in main never maps to the `contentinfo` landmark; phase 0's
+ * "six components inside one main" criterion is superseded for Footer).
+ *
+ * Rendered through Base.astro. Container styling consumes tokens only; section
+ * internals are styled by each component's own scoped styles. Footer.astro
+ * repeats these container rules for itself — Astro scopes styles to the
+ * elements in their own template, so the `main` rule below cannot reach a
+ * sibling component's root element.
+ *
+ * --- The reveal system (ADR-0005) ---------------------------------------
+ *
+ * This page owns BOTH halves of the site's scroll-triggered motion: the one
+ * inline script permitted by ADR-0005, and the CSS contract that script
+ * drives. They live together deliberately — the script is meaningless without
+ * the rules keyed off the class it adds, and splitting them would leave the
+ * budget-capped script in one file and its only observable effect in another.
+ *
+ * The contract, in three parts:
+ *
+ *   1. A section opts in by putting `data-reveal` on its root element. The
+ *      observer watches every such element and adds `is-revealed` once, then
+ *      unobserves — the reveal plays once and never re-arms.
+ *   2. Inside an opted-in section, elements carrying `.reveal` animate. The
+ *      class is an explicit opt-in rather than a `> *` descendant sweep so a
+ *      section can animate its own internals on its own terms: Protocol
+ *      already staggers `.state`/`.loop` off `is-revealed`, and a generic
+ *      child rule would fade the whole `<ol>` in on top of that.
+ *   3. Stagger is `--reveal-delay`, set by the owning component on its own
+ *      `.reveal` elements. Components choreograph; this page only supplies
+ *      the mechanism.
+ *
+ * Why `is:global` rather than global.css: the mechanism belongs next to the
+ * script that drives it, and this slice's declared scope does not include
+ * src/styles/global.css. If a later slice grows a second consumer of the
+ * reveal system outside this page, that is the moment to promote it.
+ *
+ * Never-invisible rule (ADR-0005). The animation is applied ONLY when
+ * `is-revealed` is present AND motion is not reduced. Nothing anywhere sets a
+ * hidden base state, so with JS off, with the observer unsupported, or under
+ * `prefers-reduced-motion: reduce`, every section renders complete and
+ * immediately — the class adds motion, never visibility. `backwards` fill is
+ * what makes that possible: it holds the start frame through the stagger
+ * delay, so the delay needs no `opacity: 0` base to hide behind.
+ *
+ * The script is `is:inline` because ADR-0005 mandates an *inline* observer; a
+ * processed <script> would be bundled to an external module. is:inline is
+ * passed through verbatim and never minified, so it is written hand-minified
+ * on one line, and it is placed after the content so the elements it queries
+ * exist. Budget: ≤ 1024 bytes in dist (ADR-0005 gate).
+ *
+ * Options: no `threshold`, because intersectionRatio is a fraction of the
+ * target's OWN height and a section taller than the viewport could never
+ * reach a fractional threshold on a narrow phone (the trap phase-1-ws-1.2
+ * documented for the diagram). Instead the default 0 threshold is pulled in
+ * by a -10% bottom `rootMargin`, so a section arms once its top edge is a
+ * little way into the viewport rather than the instant it grazes the fold.
+ * One consequence, stated so it is not a discovery: a section shorter than
+ * 10% of the viewport height sitting flush at the very bottom of the page
+ * could never intersect the shrunk root. None of the five opted-in sections
+ * is anywhere near that short, and the last of them (Install) is followed by
+ * the footer, so none sits flush at the bottom.
+ *
+ * This rationale lives in the frontmatter, not in an HTML comment beside the
+ * script: frontmatter comments are compiled away, while an HTML comment
+ * naming a script element literally would survive into dist and break the
+ * phase gate's "exactly one script element in dist/index.html" count.
  */
 import Base from "../layouts/Base.astro";
 import Hero from "../components/Hero.astro";
 import Problem from "../components/Problem.astro";
 import Personas from "../components/Personas.astro";
 import Protocol from "../components/Protocol.astro";
+import Workflow from "../components/Workflow.astro";
 import Install from "../components/Install.astro";
 import Footer from "../components/Footer.astro";
 
@@ -24,9 +90,11 @@ const description =
     <Problem />
     <Personas />
     <Protocol />
+    <Workflow />
     <Install />
-    <Footer />
   </main>
+  <Footer />
+  <script is:inline>const o=new IntersectionObserver((es,ob)=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add("is-revealed");ob.unobserve(e.target)}}),{rootMargin:"0px 0px -10% 0px"});document.querySelectorAll("[data-reveal]").forEach(t=>o.observe(t))</script>
 </Base>
 
 <style>
@@ -34,5 +102,41 @@ const description =
     max-width: var(--container-max);
     margin-inline: auto;
     padding-inline: var(--space-4);
+  }
+</style>
+
+<style is:global>
+  /* --- Reveal system (ADR-0005) -----------------------------------------
+     Unscoped on purpose: these rules have to reach `.reveal` elements
+     rendered by the section components, which Astro's scoped selectors
+     cannot do from a page. See the frontmatter for the full contract.
+
+     300ms (--duration-base) sits at the top of the 200-300ms envelope
+     OVERVIEW §3.2 specifies for section reveals, and inside ADR-0002's
+     wider 200-700ms one. 16px (--space-3) is the maximum translate the
+     plan allows. Nothing loops: one iteration, `backwards` fill, no
+     `forwards` — the animation ends on the same frame the base rules
+     already render. */
+  @media (prefers-reduced-motion: no-preference) {
+    [data-reveal].is-revealed .reveal {
+      animation: reveal-in var(--duration-base) var(--ease-out) backwards;
+      animation-delay: var(--reveal-delay, 0ms);
+    }
+  }
+
+  /* Global by necessity, not by choice: Astro does not scope @keyframes
+     names even inside a scoped block (the built CSS keeps `state-in`
+     verbatim), so four per-component copies of this would be four
+     colliding global definitions of the same name. One definition, in the
+     one file that owns the mechanism. */
+  @keyframes reveal-in {
+    from {
+      opacity: 0;
+      transform: translateY(var(--space-3));
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
   }
 </style>

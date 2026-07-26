@@ -1,14 +1,39 @@
 ---
 /**
- * Personas — placeholder section for the Phase-0 skeleton.
- * Phase 1 fills this with the two-personas split. Styling consumes tokens
- * only.
+ * Personas — the human/agent split: what each side owns under metis.
+ *
+ * Copy is rendered verbatim from docs/copy.md §Personas (ADR-0003: the copy
+ * deck is the single source of truth). Each copy string sits on ONE source
+ * line and is never split by an inline element, so the built output greps
+ * literally against the deck (convention from phase-1-ws-1.1).
+ *
+ * Layout: one column by default, two side by side from 768px up. Mobile-first
+ * so the narrow layout needs no media query at all.
+ *
+ * Reveal (ADR-0005): the section opts into the page's shared observer with
+ * `data-reveal`. The two columns carry `.reveal` individually rather than the
+ * `.columns` grid wrapper carrying it once — a split is the point of this
+ * section, so the halves arriving one after the other reads as the idea,
+ * where fading the pair in as one block would not. Nothing sets a hidden base
+ * state: the rules below render the finished section and the reveal is opt-in
+ * motion layered on top (the never-invisible rule).
  */
 ---
 
-<section id="personas" class="section">
-  <h2>Who it's for</h2>
-  <p>Placeholder for the two-personas split.</p>
+<section id="personas" class="section" data-reveal>
+  <h2 class="reveal">Two personas, one binary.</h2>
+
+  <div class="columns">
+    <div class="column reveal">
+      <h3>The developer</h3>
+      <p>You own the spec, the plan, and the priorities. metis gives you a ledger you can trust, review evidence you can audit, and a registry to run it across every project you own.</p>
+    </div>
+
+    <div class="column reveal">
+      <h3>The agent</h3>
+      <p>Agents get a printed protocol: one slice at a time, a brief committed before code, machine-checked scope, and a review they cannot perform on themselves.</p>
+    </div>
+  </div>
 </section>
 
 <style>
@@ -17,8 +42,58 @@
     border-bottom: 1px solid var(--color-border);
   }
 
-  .section p {
+  .columns {
+    display: grid;
+    gap: var(--space-4);
+    margin-block-start: var(--space-5);
+  }
+
+  /* 768px is a raw length on purpose: tokens.css owns colour, type and
+     spacing, and deliberately defines no breakpoint scale. The value is the
+     one the plan (§1.2) specifies for the two-column threshold. */
+  @media (min-width: 768px) {
+    .columns {
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--space-5);
+    }
+  }
+
+  /* Raised surface gives each column its boundary; the hairline only sharpens
+     an edge the fill already draws, so --color-border's decorative 1.40:1 is
+     the right token here. Text pairings are in tokens.css's ratio table:
+     text on surface 16.14:1 dark / 18.91:1 light, muted on surface 7.66:1
+     dark / 6.06:1 light — both AA. */
+  .column {
+    padding: var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background-color: var(--color-surface);
+  }
+
+  .column p {
     margin-block-start: var(--space-3);
     color: var(--color-muted);
+    /* The grid track already sets the measure; --measure would over-constrain
+       the column on wide viewports. */
+    max-width: none;
+  }
+
+  /* --- Reveal stagger ----------------------------------------------------
+     Choreography only: index.astro owns the animation, this component owns
+     the order. The delays are inert custom properties until that rule reads
+     them, which happens only once `is-revealed` lands and only outside
+     reduced motion — so no media query is needed here.
+
+     The h2 takes the 0ms default. Both columns then arrive left-to-right,
+     the same direction the row is read in, 80ms apart. This deliberately
+     ignores the 768px stack: at narrow widths the columns are already in
+     document order top to bottom, and the same two delays read as the same
+     sequence. */
+  .column:first-child {
+    --reveal-delay: 80ms;
+  }
+
+  .column:last-child {
+    --reveal-delay: 160ms;
   }
 </style>

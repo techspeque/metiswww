@@ -1,0 +1,112 @@
+# Deploy metiswww to GitHub Pages (phase-2-ws-2.3, ADR-0006).
+#
+# `dev` is the integration branch and never deploys; the human merges
+# dev → main to release (OVERVIEW.md §8). That release step is the only
+# automatic trigger here.
+#
+# The verify gate: `npm run verify` is `astro check && astro build` — the same
+# command the metis protocol runs, which ADR-0006 names directly. It is both
+# the gate and the build, so it is one step: a red `astro check` exits
+# non-zero, the `&&` stops `astro build` from ever running, no `dist/` is
+# produced, and the job fails before anything is uploaded. A red verify
+# therefore cannot deploy.
+#
+# NOTE FOR THE REPOSITORY OWNER: this workflow deploys nothing until
+# Settings → Pages → Build and deployment → Source is set to "GitHub Actions".
+# That is a repository setting, not a file, so no commit can make it true.
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  # Manual re-run, e.g. after the Pages source is switched on for the first
+  # time. `workflow_dispatch` offers a ref picker listing every branch, so
+  # this trigger alone does NOT keep the workflow main-only — the `if` guard
+  # on both jobs below is what does (finding f-015, review cycle 1).
+  workflow_dispatch:
+
+# Least privilege: read the code, write a Pages deployment, and mint the OIDC
+# token actions/deploy-pages exchanges for it. Nothing else.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deployment at a time. `cancel-in-progress: false` on purpose — killing a
+# half-finished deployment can leave the live site mid-swap, and these runs are
+# short enough that queueing costs nothing.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    # ADR-0006: `dev` never deploys. The `push` trigger already restricts
+    # itself to main; this guard is what extends that to `workflow_dispatch`,
+    # which would otherwise run this workflow from any ref the dispatcher
+    # picks. Guarding `build` as well as `deploy` means a dispatch from `dev`
+    # produces no artifact either, not just no deployment.
+    #
+    # `github.ref`, not `github.ref_name`: the full ref distinguishes the
+    # branch `main` from a tag of the same name.
+    #
+    # This is the enforcement, and it is deliberately in the file. The
+    # `github-pages` environment does carry a branch restriction of its own,
+    # but that is a repository setting — invisible from here, changeable
+    # without a commit, and therefore not something a plan acceptance
+    # criterion can rest on.
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          # Matches the `engines.node` floor in package.json. Quoted because
+          # YAML would read an unquoted minor version (e.g. 22.10) as a float
+          # and drop the trailing zero.
+          node-version: "22"
+          cache: npm
+
+      # `npm ci` rather than `npm install`: the lockfile is the input, and a
+      # deploy must never resolve a dependency the verified build did not use.
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify (astro check + astro build)
+        run: npm run verify
+
+      # Kept although `base` is hardcoded in astro.config.mjs per ADR-0006 and
+      # nothing here reads this step's outputs: it is the step GitHub's own
+      # static-site starter workflow uses, and per its documentation it reads
+      # the repository's Pages configuration — so if Pages has not been
+      # switched to "GitHub Actions" it is the step expected to say so, ahead
+      # of deploy-pages. Left at `enablement: false` (the default): a deploy
+      # workflow should not silently reconfigure repository settings.
+      - name: Configure Pages
+        uses: actions/configure-pages@v6
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: ./dist
+
+  deploy:
+    # Gate: without a green build job there is no artifact and no deployment.
+    needs: build
+    # Repeated rather than inherited: `if` is not inherited through `needs`,
+    # and a skipped dependency skipping its dependents is a consequence of
+    # how `needs` evaluates rather than a rule this file states. Stating it
+    # on the job that actually publishes makes the main-only property true of
+    # this job on its own terms.
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

@@ -5,9 +5,115 @@
  * Twitter metadata, theme-color for both color schemes, favicons, self-hosted
  * font preloads, and the token → fonts → global stylesheet cascade.
  *
- * Zero client-side JS (OVERVIEW.md §3.1, §3.4).
+ * Client-side JS: one script, the pre-paint theme script below (ADR-0007).
+ * The other sanctioned script — the ADR-0005 reveal observer — lives in
+ * src/pages/index.astro. Two inline scripts site-wide, no others, no
+ * libraries (OVERVIEW.md §3.1, §3.4 as amended by ADR-0007).
+ *
+ * --- The manual scheme toggle (phase-2-ws-2.6, ADR-0007) -----------------
+ *
+ * tokens.css owns the cascade half of this feature: dark on `:root`, light in
+ * a `prefers-color-scheme: light` media query, and two `:root[data-theme=…]`
+ * blocks at higher specificity that let an explicit choice beat the OS in
+ * both directions. This file owns the other half — the state, and the control
+ * that sets it.
+ *
+ * The script, expanded (it is written hand-minified on one line below because
+ * `is:inline` content is passed through verbatim and never minified):
+ *
+ *   (() => {
+ *     var d = document, r = d.documentElement,
+ *         K = "theme", T = "data-theme", Q = "[data-theme-toggle]",
+ *         m = matchMedia("(prefers-color-scheme:light)"),
+ *         ok = 1, stored;
+ *     // Effective scheme: the explicit choice if there is one, else the OS.
+ *     var cur = () => r.getAttribute(T) || (m.matches ? "light" : "dark");
+ *     // Reveal the control and put its state in sync with the scheme.
+ *     var sync = () => {
+ *       var b = d.querySelector(Q);
+ *       if (b && ok) {
+ *         var light = cur() == "light";
+ *         b.hidden = false;
+ *         b.setAttribute("aria-pressed", light);
+ *         b.setAttribute("aria-label",
+ *           light ? "Switch to dark theme" : "Switch to light theme");
+ *       }
+ *     };
+ *     try { stored = localStorage.getItem(K); } catch (e) { ok = 0 }
+ *     if (stored == "light" || stored == "dark") r.setAttribute(T, stored);
+ *     d.addEventListener("click", (e) => {
+ *       if (e.target.closest?.(Q)) {
+ *         var next = cur() == "light" ? "dark" : "light";
+ *         r.setAttribute(T, next);
+ *         try { localStorage.setItem(K, next) } catch (e) { r.removeAttribute(T) }
+ *         sync();
+ *       }
+ *     });
+ *     d.addEventListener("DOMContentLoaded", sync);
+ *     m.addEventListener("change", sync);
+ *   })();
+ *
+ * Why it is shaped this way:
+ *
+ *   - It runs in <head>, before the stylesheet link Astro appends at the end
+ *     of <head>, so `data-theme` is on <html> before the first paint. That
+ *     ordering is the whole point: read it late and the visitor sees a flash
+ *     of the OS scheme before their choice applies.
+ *   - Only the two literals `"light"` and `"dark"` are honored; a hand-edited
+ *     or stale value leaves the attribute unset, i.e. OS behavior.
+ *   - The click listener is delegated on `document` so it can be attached
+ *     from <head>, before the button it serves exists. `closest?.` guards the
+ *     case where the event target is not an Element.
+ *   - `sync()` runs on DOMContentLoaded because the button is not parsed yet
+ *     when this script executes. It is also what un-hides the button: the
+ *     control ships with `hidden`, so a no-JS visitor never sees a dead one.
+ *   - Both accessible labels appear as whole literals rather than being
+ *     concatenated, so each is greppable verbatim in the built HTML against
+ *     docs/copy.md §ThemeToggle.
+ *
+ * --- Storage failure and live OS changes (review cycle 1, f-014) ---------
+ *
+ * ADR-0007 requires that a thrown localStorage access degrade to
+ * OS-preference behavior, never to a broken page, and the same ADR's
+ * progressive-enhancement rule is that a visitor never sees a dead control.
+ * Both clauses bind at once, so storage failure is handled in two places:
+ *
+ *   - Read throws (private mode, storage blocked): `ok` goes to 0 and
+ *     `sync()` never un-hides the button. The visitor keeps pure
+ *     `prefers-color-scheme` behavior and is not offered a switch that
+ *     cannot hold its answer. The read is the capability probe — probing
+ *     with a scratch write is not available, because a second localStorage
+ *     key would break the one-key acceptance criterion.
+ *   - Write throws anyway (quota, and only reachable when the read worked):
+ *     `data-theme` is removed, so the effective scheme falls straight back
+ *     to the OS. Set and removed inside one task, so no paint happens in
+ *     between and the revert cannot flash.
+ *
+ * The `change` listener on the media query is the other half of f-014.
+ * Without it, a visitor with no stored override who flips their OS scheme
+ * live got the repainted page (that is pure CSS) but a stale `aria-pressed`
+ * and a stale `aria-label` — announcing the exact opposite of what the next
+ * click would do. `sync()` recomputes from `cur()`, so the listener is a
+ * no-op while an override is set and corrects the label when one is not.
+ *
+ * Both fixes were paid for out of the same budget rather than added to it:
+ * hoisting the three repeated string literals (`T`, `Q`, `m`) and switching
+ * to arrow functions freed more bytes than the new behavior costs, so the
+ * script is smaller after the fix than before it.
+ *   - `aria-pressed` is defined as "the light scheme is active". Pairing a
+ *     pressed state with an action-phrased label is an acknowledged ARIA
+ *     tension (a screen reader says "Switch to dark theme, pressed"), but
+ *     ADR-0007 mandates syncing `aria-pressed` and the label wording is fixed
+ *     by the copy deck; one consistent definition is the best available
+ *     reading, and it is stated here so it is not re-litigated per review.
+ *   - `<meta name="theme-color">` stays media-query-driven. Under a manual
+ *     override browser chrome may follow the OS instead — accepted in
+ *     ADR-0007's consequences rather than paid for out of the script budget.
+ *
+ * Budget: ≤ 768 bytes in dist (ADR-0007 gate), measured the way the phase-1
+ * gate measured the observer — inner text and whole element both reported.
  */
-import { SITE, THEME_COLOR } from "../consts";
+import { SITE, THEME_COLOR, withBase } from "../consts";
 
 // Import order is load order: tokens define the fallback font stacks, fonts
 // enriches them with the real faces, global consumes the resulting tokens.
@@ -24,17 +130,27 @@ interface Props {
 
 const { title, description } = Astro.props;
 
-// Concatenate onto SITE.url (rather than using it as a URL base) so the
-// project path segment in SITE.url is preserved instead of being replaced by
-// the absolute pathname.
-const pageUrl = new URL(SITE.url + Astro.url.pathname);
-// og:url must be absolute (Open Graph spec).
+// Resolve the page path against SITE.url rather than concatenating onto it.
+// `Astro.url.pathname` already carries the base ("/metiswww/"), so resolution
+// preserves the project segment via the path; concatenating would emit it
+// twice (the defect phase-2-ws-2.2 measured and handed to this slice). Only
+// SITE.url's origin reaches the output, which is what makes the double-count
+// unreachable rather than merely fixed.
+const pageUrl = new URL(Astro.url.pathname, SITE.url);
+// Absolute, and used for BOTH og:url and rel="canonical" (phase-2-ws-2.2).
+// og:url has always required it (Open Graph spec). The canonical link was
+// root-relative until this slice — valid HTML that resolves to the same URL,
+// chosen in phase-0-ws-0.2 to keep the built HTML free of any
+// <link href="http…">, which the phase-0 gate greps for. Lighthouse scores a
+// relative canonical as no canonical at all ("Is not an absolute URL"), the
+// one thing standing between this page and SEO 100, and Google's
+// canonicalization rules agree. The gate criterion behind that grep is about
+// external *resources* — "no external origins for scripts, stylesheets, or
+// fonts", "no request to any external origin on page load" — and a canonical
+// link fetches nothing, exactly like the og:url <meta> that already carries
+// this same absolute URL. So the grep gains one permitted hit and the
+// invariant it stands for is untouched; the brief records the refinement.
 const canonical = pageUrl.href;
-// The rel="canonical" link is emitted root-relative: it resolves against the
-// document URL to the same absolute URL, keeps the built HTML free of any
-// external-origin <link href="http…"> (a resource-origin acceptance gate), and
-// stays correct without hardcoding the origin.
-const canonicalPath = pageUrl.pathname;
 ---
 
 <!doctype html>
@@ -43,9 +159,14 @@ const canonicalPath = pageUrl.pathname;
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
+    <!-- Pre-paint theme state (ADR-0007) — rationale in the frontmatter above.
+         Placed here so it runs before the stylesheet Astro appends at the end
+         of <head>: the attribute must be on <html> before the first paint. -->
+    <script is:inline>(()=>{var d=document,r=d.documentElement,K="theme",T="data-theme",Q="[data-theme-toggle]",m=matchMedia("(prefers-color-scheme:light)"),o=1,t,c=()=>r.getAttribute(T)||(m.matches?"light":"dark"),s=()=>{var b=d.querySelector(Q);if(b&&o){var l=c()=="light";b.hidden=!1;b.setAttribute("aria-pressed",l);b.setAttribute("aria-label",l?"Switch to dark theme":"Switch to light theme")}};try{t=localStorage.getItem(K)}catch(e){o=0}if(t=="light"||t=="dark")r.setAttribute(T,t);d.addEventListener("click",e=>{if(e.target.closest?.(Q)){var n=c()=="light"?"dark":"light";r.setAttribute(T,n);try{localStorage.setItem(K,n)}catch(e){r.removeAttribute(T)}s()}});d.addEventListener("DOMContentLoaded",s);m.addEventListener("change",s)})()</script>
+
     <title>{title}</title>
     <meta name="description" content={description} />
-    <link rel="canonical" href={canonicalPath} />
+    <link rel="canonical" href={canonical} />
 
     <!-- Open Graph -->
     <meta property="og:title" content={title} />
@@ -70,22 +191,24 @@ const canonicalPath = pageUrl.pathname;
       content={THEME_COLOR.light}
     />
 
-    <!-- Favicons -->
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <!-- Favicons — base-path aware via withBase() (src/consts.ts, ADR-0006) -->
+    <link rel="icon" type="image/svg+xml" href={withBase("favicon.svg")} />
+    <link rel="icon" href={withBase("favicon.ico")} sizes="any" />
 
     <!-- Preload self-hosted variable fonts (same-origin; crossorigin required
-         for font fetches even when same-origin) -->
+         for font fetches even when same-origin). These must match the URLs
+         fonts.css requests or the preload is wasted — the build rebases the
+         stylesheet's url(), withBase() rebases these. -->
     <link
       rel="preload"
-      href="/fonts/space-grotesk-variable.woff2"
+      href={withBase("fonts/space-grotesk-variable.woff2")}
       as="font"
       type="font/woff2"
       crossorigin
     />
     <link
       rel="preload"
-      href="/fonts/jetbrains-mono-variable.woff2"
+      href={withBase("fonts/jetbrains-mono-variable.woff2")}
       as="font"
       type="font/woff2"
       crossorigin
@@ -94,6 +217,106 @@ const canonicalPath = pageUrl.pathname;
     <meta name="generator" content={Astro.generator} />
   </head>
   <body>
+    <div class="theme-bar">
+      <button
+        type="button"
+        class="theme-toggle"
+        data-theme-toggle
+        aria-pressed="false"
+        aria-label="Switch to light theme"
+        hidden></button>
+    </div>
     <slot />
   </body>
 </html>
+
+<style>
+  /* --- Manual scheme toggle (phase-2-ws-2.6, ADR-0007) --------------------
+
+     ADR-0007 requires "no layout shift when the button un-hides — reserve its
+     box". The bar is taken out of flow instead, which is the stronger
+     guarantee of the same property: an absolutely positioned box contributes
+     nothing to layout at any point, so there is no shift to reserve against
+     whether the button is hidden, revealed, or never revealed at all (no-JS).
+     Reserving an in-flow box would have met the rule too, at the cost of
+     ~48px of dead space above the hero for every visitor including the ones
+     who never get the control.
+
+     The containing block is the initial one (nothing between here and the
+     root establishes another), so the bar is anchored to the top of the
+     document and scrolls away with the hero — the "top-of-page toggle" of
+     OVERVIEW §3.2. Its own box repeats index.astro's container rules so the
+     button lines up with the right edge of the page's content column instead
+     of the viewport.
+
+     Deliberately not wrapped in <header>: that would add a `banner` landmark
+     the page does not otherwise have, which is outside this slice's brief and
+     would be an empty landmark for no-JS visitors. The button is the only
+     content out here and it is hidden until scripted.
+
+     It sits above the hero's --space-8 top padding, so it cannot overlap the
+     headline; `pointer-events` keeps the bar's full-width box from
+     intercepting anything that passes under it regardless. */
+  .theme-bar {
+    position: absolute;
+    inset-block-start: var(--space-4);
+    inset-inline: 0;
+    max-inline-size: var(--container-max);
+    margin-inline: auto;
+    padding-inline: var(--space-4);
+    display: flex;
+    justify-content: flex-end;
+    pointer-events: none;
+  }
+
+  /* 32px box — above the 24px WCAG 2.5.8 target minimum. No visible text
+     label: the affordance is the two-tone disc sanctioned by docs/copy.md
+     §ThemeToggle, and the accessible name is carried by aria-label. */
+  .theme-toggle {
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: var(--space-5);
+    block-size: var(--space-5);
+    padding: var(--space-0);
+    border: none;
+    border-radius: 50%;
+    background: none;
+    cursor: pointer;
+  }
+
+  /* `hidden` is the no-JS state and must survive the display rule above. */
+  .theme-toggle[hidden] {
+    display: none;
+  }
+
+  /* The disc: a ring, half filled. It needs no aria-hiding — a pseudo-element
+     has no accessibility presence. --color-muted against --color-bg is
+     8.39:1 dark / 5.66:1 light (tokens.css ratio table), comfortably past the
+     3:1 AA minimum for non-text UI, and it inverts with the scheme, which is
+     the feedback for the press. */
+  .theme-toggle::before {
+    content: "";
+    inline-size: var(--space-4);
+    block-size: var(--space-4);
+    border: 1px solid var(--color-muted);
+    border-radius: 50%;
+    background-image: linear-gradient(
+      to right,
+      var(--color-muted) 0 50%,
+      transparent 50% 100%
+    );
+    transition: border-color var(--duration-fast) var(--ease-out);
+  }
+
+  .theme-toggle:hover::before {
+    border-color: var(--color-text);
+  }
+
+  /* global.css rounds every focus ring to --radius; on a circular control
+     that reads as a mistake. Same properties, matching shape. */
+  .theme-toggle:focus-visible {
+    border-radius: 50%;
+  }
+</style>

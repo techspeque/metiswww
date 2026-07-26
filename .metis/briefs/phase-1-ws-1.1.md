@@ -31,6 +31,34 @@ Replace the Hero placeholder with the real hero: copy from docs/copy.md
 - prefers-reduced-motion shows the full transcript statically
 - Zero <script> in dist; no raw colors; npm run verify green
 
+## Implementation notes (coder)
+
+Three decisions a reviewer would otherwise have to re-derive:
+
+1. **Reduced motion is expressed as `no-preference`, not `reduce`.** All
+   animation properties sit inside
+   `@media (prefers-reduced-motion: no-preference)`, so the component's base
+   rules already *are* the final frame. A `reduce` block would not have been
+   enough: global.css collapses `animation-duration` under `reduce` but not
+   `animation-delay`, so an `opacity: 0` base would leave the transcript blank
+   for ~2.4s for exactly the users who asked for less motion. Verified in
+   Chrome by disabling the no-preference block: 0 running animations, command
+   line at natural width, all 11 lines at opacity 1.
+2. **ADR-0002 (each animation 200-700ms) vs the brief (typing 2-4s total).**
+   Read as: per-animation envelope, composed sequence. Longest single
+   animation is 650ms; the sequence ends at ~2.63s.
+3. **CTA labels carry no arrow.** In docs/copy.md the "→" separates label
+   from URL; compare §NotFound, where "← Back to metis" is written inline
+   because there the arrow is part of the label.
+
+Hex values appear in Hero.astro only inside contrast-documentation comments,
+mirroring the convention tokens.css uses for its own ratio table. No raw
+colour, size or spacing value is used at a point of use.
+
+The two brace-only transcript lines are written as `{"{"}` / `{"}"}` — a bare
+brace opens an Astro expression, and HTML entities would have put `&#123;`
+in the built output and broken the byte-for-byte criterion.
+
 ## Test plan
 
 - npm run verify (astro check + build)

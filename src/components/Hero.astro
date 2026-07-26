@@ -1,14 +1,191 @@
 ---
 /**
- * Hero — placeholder section for the Phase-0 skeleton.
- * Phase 1 replaces this with the typed-terminal animation and install
- * one-liner. Carries the page's single h1. Styling consumes tokens only.
+ * Hero — headline, subline, vendor line, typed-terminal transcript, the
+ * ledger proof strip, install one-liner and the two calls to action.
+ *
+ * Copy is rendered verbatim from docs/copy.md §Hero, §Hero-terminal and
+ * §Proof (ADR-0003: the copy deck is the single source of truth). The
+ * transcript is
+ * genuine `metis next -o json` output from this repository's own ledger and
+ * is reproduced byte-for-byte — it is evidence, not decoration, so it must
+ * not be reflowed, re-indented or "improved".
+ *
+ * The CTA labels carry no arrow: in docs/copy.md the "→" separates the label
+ * from its URL (compare §NotFound, where "← Back to metis" is written inline
+ * because there the arrow IS part of the label).
+ *
+ * Animation (ADR-0002): pure CSS, zero JS. The command line types itself with
+ * steps(), the JSON output then prints a line at a time. Each individual
+ * animation stays inside ADR-0002's 200-700ms envelope; the composed sequence
+ * runs ~2.6s, inside the 2-4s the brief asks for. Nothing loops.
+ *
+ * Reduced motion: every animation property lives inside a
+ * `prefers-reduced-motion: no-preference` block, so the base rules ARE the
+ * final frame. This is deliberate — global.css neutralises animation-duration
+ * under `reduce` but not animation-delay, so an opacity:0 base would leave the
+ * transcript blank for seconds for exactly the users who asked for less motion.
+ *
+ * Note the `{"{"}` / `{"}"}` escapes on the two brace-only transcript lines:
+ * a bare brace opens an Astro expression. They are written as expressions
+ * returning the literal character rather than as HTML entities, so the built
+ * output contains a real "{" and the byte-for-byte grep holds.
+ *
+ * --- Proof strip (phase-2-ws-2.4, ADR-0008) ------------------------------
+ *
+ * Three ledger-measured numbers plus one labeled estimate. Under ADR-0008 the
+ * numbers are static strings carrying an as-of date, not fetched values
+ * (OVERVIEW §2.2 forbids client-side data fetching), and each one has a
+ * verification note in docs/copy.md §Proof.
+ *
+ * ADR-0009 amends who those notes bind. They document the method so a READER
+ * can audit a number; they no longer oblige an agent to recompute one. The
+ * §Proof values are Human-owned: render them verbatim, do not recompute them,
+ * do not raise a finding when one is stale, and do not "correct" one here.
+ * What is still a P2 is a *label* that makes a false claim — a stale value is
+ * not a finding, a false label is. Two things are load-bearing and must
+ * survive any edit:
+ *
+ *   - Stat 4's "est." prefix and "at best observed" qualifier. It is the one
+ *     figure on the site that is NOT ledger-recomputable, and ADR-0008 admits
+ *     it only because it is visibly labeled. Dropping either word is a P2.
+ *   - The caption's "as of 2026-07-26". The date is what carries the claim
+ *     when the ledger moves on; removing it is a finding. It has already
+ *     moved — `.metis/slices-done.yaml` holds 10 entries, not 9, and
+ *     findings.yaml holds 11, not 10. Under ADR-0009 neither is a defect:
+ *     the §Proof values are Human-owned, agents render them verbatim, and
+ *     the Human refreshes all four plus the date once before release. Do not
+ *     "correct" a value here.
+ *
+ * Stat 2's label was rewritten in review cycle 1 (f-011). It previously
+ * claimed every finding was caught "after the author had called the work
+ * done", which was false for f-006/7/8 — coder self-recorded advisories
+ * committed before the phase-1 gate's first `flip coded`. findings.yaml
+ * carries no author field, so the label no longer makes any authorship
+ * claim. ADR-0009 draws the line this sits on: a stale value is not a
+ * finding, a false label is.
+ *
+ * Placement: immediately after the terminal figure, because §Proof says
+ * "beneath the terminal caption" and the caption is the figure's last child.
+ * §Hero separately calls the install one-liner "beneath the terminal", so the
+ * two instructions read as a sequence — terminal, then strip, then install —
+ * and the strip lands between them rather than after the CTAs.
+ *
+ * `−55%` opens with U+2212 MINUS SIGN, not a hyphen-minus, matching the deck
+ * byte-for-byte.
+ *
+ * The vendor line's `AGENTS.md` is backticked in the deck and renders as plain
+ * text here, the same call Protocol.astro:27-30 made for `metis next` and
+ * Install.astro:19-21 for the `go install` line: a <code> element inside the
+ * sentence would split it into three text nodes and break the literal grep,
+ * and that is not a trade worth making for typography alone. The stat values
+ * are backticked in the deck for the same reason — to pin the exact string —
+ * and are likewise not <code>; the deck and the plan both call for them in the
+ * display face, which is what .stat dt gives them.
+ *
+ * The caption is the one place the rule bends, and only where it must: a
+ * markdown link is functional, not typographic, so "audit the ledger" is a
+ * real <a>. It splits there and nowhere else, with the trailing "." outside
+ * the anchor because that is where the deck puts it — Install.astro:12-17
+ * settled this shape.
+ *
+ * The strip carries no `data-reveal` and no `.reveal`: the hero is above the
+ * fold and renders immediately (§2.1), and the strip is part of the hero.
+ * ADR-0005's observer never sees this subtree, and no script is added.
+ *
+ * Presentation deviates from plan §2.4 on two points, on the product owner's
+ * direction after reviewing the first cut (recorded in this slice's brief
+ * under "Scope amendment"). §2.4 asks for a 2×2 grid with the values "styled
+ * display"; this renders them mono, in aegean teal, as a hairline-divided row
+ * that goes four-across at 1024px. The reasoning:
+ *
+ *   - Mono is the site's idiom for machine output — the same face as the
+ *     transcript immediately above. A ledger reading set in the display face
+ *     reads as a marketing stat; set in mono it reads as something the tool
+ *     printed, which is the claim the section is making.
+ *   - Teal is tokens.css's success colour and these are the successes. Gold
+ *     was rejected: the hero already spends it on the caret and the primary
+ *     CTA, and OVERVIEW §3.2 asks for it sparingly.
+ *   - The estimate is muted rather than teal, so measured-vs-estimated is
+ *     legible before a word is read.
+ *   - Four across removes the dead space 2×2 left in the wide tracks. The
+ *     2×2 the plan asked for survives as the 640-1023px band.
+ *
+ * Lightning CSS rewrites the `min-width` queries below to `width>=` in the
+ * built stylesheet. That is the same transform f-004 recorded as advisory for
+ * Personas.astro, not a new behaviour.
  */
 ---
 
 <section id="hero" class="section hero">
-  <h1>metis</h1>
-  <p>The meta-harness that keeps AI coding agents on task.</p>
+  <h1 class="headline">Your agents are brilliant. Their process isn't.</h1>
+
+  <!-- Kept on one source line: HTML would collapse a wrapped version to the
+       same rendered text, but this way the built output greps literally
+       against docs/copy.md §Hero. -->
+  <p class="subline">metis is the meta-harness for AI coding agents — deterministic dispatch, scope as a contract, and cross-vendor review, enforced by exit codes instead of hope.</p>
+
+  <p class="vendor">Agent-agnostic by design — Claude Code, opencode, Codex, or any surface that reads AGENTS.md. One protocol, zero lock-in.</p>
+
+  <figure class="terminal">
+    <pre class="transcript"><code><span class="line cmd">$ metis next -o json</span>
+<span class="line out">{"{"}</span>
+<span class="line out">  "active": true,</span>
+<span class="line out">  "id": "phase-1-ws-1.1",</span>
+<span class="line out">  "title": "Hero with typed-terminal animation",</span>
+<span class="line out">  "risk": "medium",</span>
+<span class="line out">  "role": "Coder",</span>
+<span class="line out">  "agent_slug": "claude-code/opus",</span>
+<span class="line out">  ...</span>
+<span class="line out">{"}"}</span>
+<span class="line out prompt">$ █</span></code></pre>
+    <figcaption>This very page is a slice in metis's own ledger.</figcaption>
+  </figure>
+
+  <div class="proof">
+    <p class="kicker" id="proof-kicker">Dogfood numbers — this site, built under its own protocol</p>
+
+    <dl class="stats" aria-labelledby="proof-kicker">
+      <div class="stat">
+        <dt>9/9</dt>
+        <dd>slices independently reviewed — never by their author</dd>
+      </div>
+
+      <div class="stat">
+        <dt>10</dt>
+        <dd>findings logged against this site's own slices — every one public in the ledger, none ever removed</dd>
+      </div>
+
+      <div class="stat">
+        <dt>0</dt>
+        <dd>out-of-scope files shipped — file scope is machine-audited on every slice</dd>
+      </div>
+
+      <div class="stat stat--est">
+        <dt>−55%</dt>
+        <dd>est. token spend at best observed — one bounded slice at a time replaces session-long re-exploration</dd>
+      </div>
+    </dl>
+
+    <p class="proof-caption">Three numbers measured from this repository's own ledger as of 2026-07-26; the fourth is a labeled estimate — <a
+        href="https://github.com/techspeque/metiswww"
+        rel="noopener">audit the ledger</a>.</p>
+  </div>
+
+  <pre
+    class="install"><code>curl -fsSL https://raw.githubusercontent.com/techspeque/metis/main/scripts/install.sh | bash</code></pre>
+
+  <p class="ctas">
+    <a class="cta cta--primary" href="https://github.com/techspeque/metis" rel="noopener">
+      View on GitHub
+    </a>
+    <a
+      class="cta cta--secondary"
+      href="https://github.com/techspeque/metis/tree/main/docs"
+      rel="noopener"
+    >
+      Read the docs
+    </a>
+  </p>
 </section>
 
 <style>
@@ -17,9 +194,323 @@
     border-bottom: 1px solid var(--color-border);
   }
 
-  .hero p {
-    margin-block-start: var(--space-3);
+  /* --- Copy ------------------------------------------------------------- */
+  .headline {
+    /* Scales between two type-scale tokens — no raw font sizes. */
+    font-size: clamp(var(--text-2xl), 6vw, var(--text-4xl));
+    max-width: var(--measure);
+  }
+
+  .subline {
+    margin-block-start: var(--space-4);
     font-size: var(--text-lg);
     color: var(--color-muted);
+  }
+
+  /* Muted on background: 8.39:1 dark / 5.66:1 light (tokens.css ratio table),
+     both AA. Smaller than the subline so it reads as a qualifier on the claim
+     above it rather than a second claim. */
+  .vendor {
+    margin-block-start: var(--space-3);
+    font-size: var(--text-sm);
+    color: var(--color-muted);
+  }
+
+  /* --- Terminal --------------------------------------------------------- */
+  .terminal {
+    margin-block-start: var(--space-6);
+  }
+
+  .transcript {
+    padding: var(--space-4);
+    font-size: var(--text-sm);
+  }
+
+  /* Each line is its own box so the command can be width-clipped and the
+     output lines can be revealed independently. inline-block keeps the
+     literal newlines between them working as line breaks inside <pre>. */
+  .line {
+    display: inline-block;
+    vertical-align: top;
+  }
+
+  /* The trailing prompt line, owl-gold: this colours the "█" caret that is
+     part of the transcript itself. Contrast (tokens.css table): #D4A24E on
+     surface #171B22 = 7.46:1 dark; #8A5A12 on #FFFFFF ≥ 5.53:1 light. */
+  .prompt {
+    color: var(--color-accent);
+  }
+
+  .terminal figcaption {
+    margin-block-start: var(--space-3);
+    font-size: var(--text-sm);
+    color: var(--color-muted);
+  }
+
+  /* --- Proof strip ------------------------------------------------------ */
+  .proof {
+    margin-block-start: var(--space-6);
+  }
+
+  /* Muted on background, 8.39:1 dark / 5.66:1 light — AA. */
+  .kicker {
+    font-size: var(--text-sm);
+    color: var(--color-muted);
+  }
+
+  /* The rules above and below turn the four numbers into one horizontal band
+     — a ledger row rather than four loose figures. They are the strip's only
+     ornament: --color-border is the same decorative 1.40:1 hairline the
+     terminal and the persona columns use, carrying no information (the <dl>
+     structure does that), so it has no contrast obligation.
+
+     Mobile-first: one column, no vertical dividers, no media query. */
+  .stats {
+    display: grid;
+    gap: var(--space-4);
+    margin-block-start: var(--space-3);
+    padding-block: var(--space-4);
+    border-block: 1px solid var(--color-border);
+  }
+
+  /* 640px and 1024px are raw lengths on purpose, the same trade
+     Personas.astro:51-53 names: tokens.css owns colour, type and spacing and
+     deliberately defines no breakpoint scale, so a layout threshold has to be
+     written literally.
+
+     Two rows of two, then one row of four. The column gap goes to zero here
+     because the divider rule now does the separating and the cell padding
+     supplies the air — a gap on top of both would read as a broken table.
+
+     Every spacing zero below reads --space-0 rather than a literal 0: the
+     token scale defines the zero step, so spacing comes off the scale even
+     when it is nothing (the f-003 rule). Border WIDTHS stay literal — they
+     are not spacing, tokens.css defines no border scale, and the hairlines
+     throughout this file are already written `1px solid`. */
+  @media (min-width: 640px) {
+    .stats {
+      grid-template-columns: repeat(2, 1fr);
+      column-gap: var(--space-0);
+      row-gap: var(--space-5);
+    }
+
+    .stat {
+      padding-inline: var(--space-4);
+      border-inline-start: 1px solid var(--color-border);
+    }
+
+    /* First cell of each row: no divider, and flush with the left edge so the
+       numbers align with the headline above them. */
+    .stat:nth-child(odd) {
+      padding-inline-start: var(--space-0);
+      border-inline-start: 0;
+    }
+  }
+
+  /* One row of four. Every cell but the first regains its divider, which means
+     undoing the 2-column rule for the third cell — it is no longer the start
+     of a row. */
+  @media (min-width: 1024px) {
+    .stats {
+      grid-template-columns: repeat(4, 1fr);
+    }
+
+    .stat:nth-child(odd) {
+      padding-inline-start: var(--space-4);
+      border-inline-start: 1px solid var(--color-border);
+    }
+
+    .stat:first-child {
+      padding-inline-start: var(--space-0);
+      border-inline-start: 0;
+    }
+  }
+
+  /* Value first in the DOM, which puts it first for a screen reader too: the
+     strip is read "9/9 — slices independently reviewed", the same order a
+     sighted visitor reads it. That makes the number the <dt>, inverting the
+     usual term/description reading of a <dl>. The alternative — label as <dt>,
+     value as <dd>, reordered visually with CSS — would buy a tidier semantic
+     at the cost of a DOM/visual mismatch, which is the worse trade. The
+     wrapper <div> around each pair is what HTML5 sanctions for grouping, and
+     it is what gives the grid its four children. */
+  /* Mono, because these are ledger readings and the mono face is this site's
+     idiom for "this came out of the machine" — the same face as the transcript
+     directly above. tabular-nums keeps the digits on a common width so the
+     four figures align down the row.
+
+     Aegean teal, not owl-gold: tokens.css assigns gold to links, the caret and
+     key highlights (the hero already spends it on the caret and the primary
+     CTA, and four gold numbers would stop it being sparing), and assigns teal
+     to success states, which is what a measured proof number is. Secondary on
+     background is 4.68:1 dark / 5.87:1 light — AA as normal text, and these
+     render well above the 24px large-text threshold besides. */
+  .stat dt {
+    font-family: var(--font-mono);
+    font-size: clamp(var(--text-xl), 4vw, var(--text-3xl));
+    font-weight: var(--weight-bold);
+    line-height: var(--leading-tight);
+    color: var(--color-secondary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* The estimate is muted rather than teal, so the measured/estimated split
+     ADR-0008 cares about is visible before a word is read — three teal
+     readings and one that visibly is not one. This reinforces the copy's
+     "est." prefix; it does not replace it, and neither may be dropped.
+     Muted on background: 8.39:1 dark / 5.66:1 light, AA. */
+  .stat--est dt {
+    color: var(--color-muted);
+  }
+
+  .stat dd {
+    margin-block-start: var(--space-2);
+    font-size: var(--text-sm);
+    color: var(--color-muted);
+  }
+
+  .proof-caption {
+    margin-block-start: var(--space-4);
+    font-size: var(--text-sm);
+    color: var(--color-muted);
+  }
+
+  /* --- Install one-liner ------------------------------------------------ */
+  .install {
+    margin-block-start: var(--space-5);
+    font-size: var(--text-sm);
+  }
+
+  /* --- Calls to action -------------------------------------------------- */
+  .ctas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-block-start: var(--space-5);
+    max-width: none;
+  }
+
+  .cta {
+    padding: var(--space-2) var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    font-weight: var(--weight-medium);
+    text-decoration: none;
+    transition:
+      color var(--duration-fast) var(--ease-out),
+      background-color var(--duration-fast) var(--ease-out),
+      border-color var(--duration-fast) var(--ease-out);
+  }
+
+  /* Accent as a background introduces one new pairing. Contrast is symmetric,
+     so the tokens.css table already covers it: accent #D4A24E / bg #0E1116 =
+     8.17:1 dark, accent #8A5A12 / bg #FAF7F0 = 5.53:1 light. Both AA. */
+  .cta--primary {
+    border-color: var(--color-accent);
+    background-color: var(--color-accent);
+    color: var(--color-bg);
+  }
+
+  /* Hover inverts to the text/background pairing (17.68:1 in both schemes). */
+  .cta--primary:hover {
+    border-color: var(--color-text);
+    background-color: var(--color-text);
+    color: var(--color-bg);
+  }
+
+  /* The border is this control's only boundary cue, so it carries information
+     and needs 3:1 (WCAG 1.4.11) — --color-border is a 1.40:1 hairline meant
+     for decorative rules. --color-muted is 8.39:1 dark / 5.66:1 light. */
+  .cta--secondary {
+    border-color: var(--color-muted);
+    color: var(--color-text);
+  }
+
+  .cta--secondary:hover {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+  }
+
+  /* --- Typing animation -------------------------------------------------
+     Opt-in only: the rules above render the finished transcript, so users
+     with `prefers-reduced-motion: reduce` (and anyone whose CSS animations
+     never run) see the complete final state with no delay. */
+  @media (prefers-reduced-motion: no-preference) {
+    .cmd {
+      /* "$ metis next -o json" is exactly 20 characters, so 20ch is the
+         finished width and steps(20) lands one character per step.
+         content-box keeps the caret border outside that width — under the
+         global border-box it would eat the last character. */
+      box-sizing: content-box;
+      width: 0;
+      overflow: hidden;
+      border-right: 0.6ch solid var(--color-accent);
+      animation:
+        type 650ms steps(20, end) 350ms forwards,
+        caret-out 200ms var(--ease-out) 1000ms forwards;
+    }
+
+    .out {
+      opacity: 0;
+      animation: emit 220ms var(--ease-out) forwards;
+    }
+
+    /* Output starts once the command has been "entered" (1000ms) and prints
+       a line every 145ms — the last line lands at ~2.6s. Children 2-11 are
+       the ten output lines; child 1 is the command. */
+    .line:nth-child(2) {
+      animation-delay: 1100ms;
+    }
+    .line:nth-child(3) {
+      animation-delay: 1245ms;
+    }
+    .line:nth-child(4) {
+      animation-delay: 1390ms;
+    }
+    .line:nth-child(5) {
+      animation-delay: 1535ms;
+    }
+    .line:nth-child(6) {
+      animation-delay: 1680ms;
+    }
+    .line:nth-child(7) {
+      animation-delay: 1825ms;
+    }
+    .line:nth-child(8) {
+      animation-delay: 1970ms;
+    }
+    .line:nth-child(9) {
+      animation-delay: 2115ms;
+    }
+    .line:nth-child(10) {
+      animation-delay: 2260ms;
+    }
+    .line:nth-child(11) {
+      animation-delay: 2405ms;
+    }
+  }
+
+  @keyframes type {
+    to {
+      width: 20ch;
+    }
+  }
+
+  /* The caret hands off to the "█" on the closing prompt line. */
+  @keyframes caret-out {
+    to {
+      border-right-color: transparent;
+    }
+  }
+
+  @keyframes emit {
+    from {
+      opacity: 0;
+      transform: translateY(var(--space-1));
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
   }
 </style>

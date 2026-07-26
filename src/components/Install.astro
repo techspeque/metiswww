@@ -1,14 +1,63 @@
 ---
 /**
- * Install — placeholder section for the Phase-0 skeleton.
- * Phase 1 fills this with the install steps and outbound links. Styling
- * consumes tokens only.
+ * Install — the install one-liner, the two alternatives, and the "what next"
+ * verification line.
+ *
+ * Copy is rendered verbatim from docs/copy.md §Install (ADR-0003: the copy
+ * deck is the single source of truth). Every string sits on ONE source line
+ * and is never split by an inline element, so the built output greps literally
+ * against the deck (convention from phase-1-ws-1.1, documented in 1.2 and
+ * 1.3) — with one forced exception:
+ *
+ *   - The alternatives line contains a markdown link, `[release](…)`. That is
+ *     a functional link, not typography, so it has to be a real <a> and the
+ *     sentence cannot be one text node under any implementation. It splits at
+ *     the link and nowhere else: the text before it, the label, and the
+ *     trailing "." are each still byte-for-byte deck text. The period stays
+ *     OUTSIDE the anchor because that is where the deck puts it.
+ *   - The backticked commands (`go install …`, `metis init`) stay plain text.
+ *     Wrapping them in <code> would split two more strings for typography
+ *     alone — the trade phase-1-ws-1.3 refused for `metis next`. It also keeps
+ *     the two adjacent lines consistent: the only mono treatment here is the
+ *     <pre> block, which the deck asks for explicitly.
+ *
+ * The one-liner is deliberately the same string the Hero renders: the deck
+ * publishes it twice (§Hero "beneath the terminal", §Install "mono block"),
+ * so two occurrences in dist is the specified state, not a duplication bug.
+ *
+ * Every claim here was checked against the real CLI and the real repository
+ * before it was written (OVERVIEW.md §3.4): scripts/install.sh and
+ * cmd/metis/main.go both resolve on main, go.mod declares the module path the
+ * `go install` line uses, and `metis init` exists in v0.0.6 with no required
+ * flags and does print its next steps.
+ *
+ * This section is the last child of <main> — the footer is a body-level
+ * sibling now (ADR-0004) — so the shared `.section` hairline below it reads as
+ * the rule that separates page content from the footer.
+ *
+ * Reveal (ADR-0005): the section opts into the page's shared observer with
+ * `data-reveal`, and its four blocks carry `.reveal` so they arrive in the
+ * order they are meant to be executed in — headline, the command you run,
+ * the alternatives if that one does not suit, then what to do next. Nothing
+ * sets a hidden base state: the rules below render the finished section and
+ * the reveal is opt-in motion layered on top (the never-invisible rule).
+ * That matters more here than anywhere else on the page — this section is
+ * the install command, and it has to be readable and copyable for a visitor
+ * with JS disabled.
  */
 ---
 
-<section id="install" class="section">
-  <h2>Install</h2>
-  <p>Placeholder for the install steps and links.</p>
+<section id="install" class="section" data-reveal>
+  <h2 class="reveal">Two minutes to a governed project.</h2>
+
+  <pre
+    class="one-liner reveal"><code>curl -fsSL https://raw.githubusercontent.com/techspeque/metis/main/scripts/install.sh | bash</code></pre>
+
+  <p class="alternatives reveal">or go install github.com/techspeque/metis/cmd/metis@latest, or grab a <a
+      href="https://github.com/techspeque/metis/releases"
+      rel="noopener">release</a>.</p>
+
+  <p class="verify reveal">then: metis init — it prints every next step.</p>
 </section>
 
 <style>
@@ -17,8 +66,71 @@
     border-bottom: 1px solid var(--color-border);
   }
 
-  .section p {
+  /* Matches the Hero's install block: the global `pre` rule already supplies
+     the surface, hairline and padding, so this only sets the rhythm above it
+     and steps the size down one token — a shell command is reference material,
+     not body copy. */
+  .one-liner {
+    margin-block-start: var(--space-6);
+    font-size: var(--text-sm);
+  }
+
+  /* Muted on base: 8.39:1 dark, 5.66:1 light (tokens.css ratio table). The
+     "release" link inside inherits the global anchor colour — accent on base,
+     8.17:1 dark / 5.53:1 light — so both AA pairings are already documented. */
+  .alternatives,
+  .verify {
     margin-block-start: var(--space-3);
+    font-size: var(--text-sm);
     color: var(--color-muted);
+  }
+
+  /* f-006 (phase-2-ws-2.2). This paragraph carries `go install
+     github.com/techspeque/metis/cmd/metis@latest` as prose, and the module
+     path is one unbreakable word ~316px wide: below 375px it could not fit
+     the content column, so it pushed the whole document to a 364px
+     scrollWidth and the page scrolled sideways. The <pre> above absorbs the
+     same problem with its own overflow-x, but a paragraph has nowhere to put
+     the excess.
+
+     `break-word` rather than `word-break: break-all` or `overflow-wrap:
+     anywhere`: it breaks a word only when that word cannot fit on a line of
+     its own, so from 375px up the token still renders whole and the section
+     looks exactly as it did — and unlike `anywhere` it leaves the
+     paragraph's min-content contribution alone. The alternative the finding
+     floated, giving the token the <pre>/<code> treatment, was declined: the
+     deck publishes this line as prose, and CSS wrapping changes no byte of
+     the string ADR-0003 requires be rendered verbatim. */
+  .alternatives {
+    overflow-wrap: break-word;
+  }
+
+  /* The verification line is the section's payoff — the one instruction the
+     reader leaves with — so it carries full-strength text (17.68:1 in both
+     schemes) and a wider gap above it than the alternatives line. */
+  .verify {
+    margin-block-start: var(--space-4);
+    color: var(--color-text);
+  }
+
+  /* --- Reveal stagger ----------------------------------------------------
+     Choreography only: index.astro owns the animation, this component owns
+     the order. The delays are inert custom properties until that rule reads
+     them, which happens only once `is-revealed` lands and only outside
+     reduced motion — so no media query is needed here.
+
+     80ms apart, in execution order, the h2 taking the 0ms default. The
+     one-liner is second on purpose: it is the thing the visitor came for,
+     so it should not be waiting behind the two lines that qualify it. */
+  .one-liner {
+    --reveal-delay: 80ms;
+  }
+
+  .alternatives {
+    --reveal-delay: 160ms;
+  }
+
+  .verify {
+    --reveal-delay: 240ms;
   }
 </style>

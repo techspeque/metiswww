@@ -1,29 +1,123 @@
 ---
 /**
- * Footer — placeholder section for the Phase-0 skeleton.
- * A semantic <footer> (last child of <main>, per the slice acceptance
- * criteria). Phase 1 fills this with outbound links and credits. Styling
- * consumes tokens only; takes no anchor id.
+ * Footer — colophon, the outbound link cluster, and the copyright line.
+ *
+ * ADR-0004: this is a direct child of <body>, a sibling of <main>, so it maps
+ * to the `contentinfo` landmark. Phase 0's "six headings inside one main"
+ * criterion is superseded for this component, and the placeholder <h2> is gone
+ * rather than reworded: docs/copy.md §Footer specifies a colophon, a link set
+ * and a copyright line — no heading — and ADR-0003 forbids inventing copy to
+ * fill one. A body-level <footer> needs no accessible name. Headings on the
+ * page are now one h1 and four h2s, all inside <main>, levels unbroken.
+ *
+ * Copy is rendered verbatim from docs/copy.md §Footer (ADR-0003). Strings sit
+ * on ONE source line so the built output greps literally against the deck
+ * (convention from phase-1-ws-1.1), with the two exceptions the deck itself
+ * forces:
+ *
+ *   - The colophon ends in a markdown link, `[Read the audit trail](…)`. A
+ *     functional link has to be a real <a>, so the string splits there and
+ *     nowhere else — the sentence before it, the label, and the trailing "."
+ *     are each still byte-for-byte deck text, and the period sits OUTSIDE the
+ *     anchor because that is where the deck puts it.
+ *   - "**Links:** GitHub · Docs · Releases · MIT License" is a spec, not a
+ *     rendered string: it names four links and their order, and four anchors
+ *     can never be one text node. Same category as §Protocol's "Diagram states
+ *     (in order)" line, which phase-1-ws-1.3 treated as structural. The <ul>
+ *     carries the order and the interpuncts are decorative CSS, exactly as
+ *     1.3's connectors are. Grep units are the four labels.
+ *
+ * The colophon's claim is literally true and the link is its evidence: every
+ * section of this page was dispatched, briefed, coded and cross-vendor
+ * reviewed as a slice, and github.com/techspeque/metiswww carries the ledger.
+ *
+ * "MIT License" is the one link the deck gives no URL for. It points at
+ * metis's LICENSE (verified 200, and its content is the MIT text); this
+ * repository has no LICENSE of its own, and the other three links all point at
+ * the metis repo, so pointing this one anywhere else would be the odd choice.
+ *
+ * `©` and `·` are literal characters, never entities — dist has to stay
+ * entity-free for the deck to grep against literal bytes (1.3's evidence).
+ *
+ * The container rules below duplicate index.astro's <main> rules on purpose.
+ * Astro scopes styles to the elements in their own template, so once the
+ * footer is a sibling rather than a descendant, index.astro's `main` rule
+ * cannot reach it — and without the inline padding the footer text would sit
+ * flush against the viewport edge while every section above it is inset.
  */
 ---
 
 <footer class="footer">
-  <h2>metiswww</h2>
-  <p>Placeholder for links and credits.</p>
+  <p class="colophon">Built by AI agents, governed by metis — every section of this page was planned, coded, and cross-vendor reviewed as a slice in its own ledger. <a
+      href="https://github.com/techspeque/metiswww"
+      rel="noopener">Read the audit trail</a>.</p>
+
+  <ul class="links" role="list">
+    <li><a href="https://github.com/techspeque/metis" rel="noopener">GitHub</a></li>
+    <li>
+      <a href="https://github.com/techspeque/metis/tree/main/docs" rel="noopener">Docs</a>
+    </li>
+    <li>
+      <a href="https://github.com/techspeque/metis/releases" rel="noopener">Releases</a>
+    </li>
+    <li>
+      <a href="https://github.com/techspeque/metis/blob/main/LICENSE" rel="noopener"
+        >MIT License</a
+      >
+    </li>
+  </ul>
+
+  <p class="copyright">© 2026 techspeque</p>
 </footer>
 
 <style>
+  /* Mirrors index.astro's <main> container — see the frontmatter for why it is
+     repeated rather than inherited. */
   .footer {
+    max-width: var(--container-max);
+    margin-inline: auto;
     padding-block: var(--space-6);
+    padding-inline: var(--space-4);
     font-size: var(--text-sm);
+  }
+
+  /* Muted on base: 8.39:1 dark, 5.66:1 light (tokens.css ratio table). The
+     audit-trail link inherits the global anchor colour — accent on base,
+     8.17:1 dark / 5.53:1 light. Both AA. */
+  .colophon {
     color: var(--color-muted);
   }
 
-  .footer h2 {
-    font-size: var(--text-lg);
+  /* Order lives in the markup, so the separators can be decorative. role="list"
+     is explicit because `list-style: none` makes WebKit drop the list role
+     (f-005), and that role is what lets the interpuncts be decoration. */
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    /* Also the row gap once the cluster wraps on a narrow viewport. */
+    gap: var(--space-3);
+    margin-block-start: var(--space-4);
+    /* Drops the UA list indent — the token zero, not a raw 0 (f-003). */
+    padding: var(--space-0);
+    list-style: none;
   }
 
-  .footer p {
-    margin-block-start: var(--space-2);
+  /* The interpunct the deck draws between labels. Decorative: it separates
+     items the flex gap and the list role already separate, so nothing is lost
+     when it is unstyled or unseen. It hangs off the PRECEDING item, not the
+     following one, which is what makes it wrap correctly: as part of that
+     item's box it can only ever end a line — the familiar "continues below"
+     separator — where a leading ::before would start a wrapped row with a
+     stray mark that reads as a bullet. Its margin plus the flex gap put equal
+     space on either side, so it sits centred between two labels. */
+  .links li:not(:last-child)::after {
+    content: "·";
+    margin-inline-start: var(--space-3);
+    color: var(--color-muted);
+  }
+
+  .copyright {
+    margin-block-start: var(--space-4);
+    color: var(--color-muted);
   }
 </style>

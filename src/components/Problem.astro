@@ -1,14 +1,51 @@
 ---
 /**
- * Problem — placeholder section for the Phase-0 skeleton.
- * Phase 1 fills this with the problem/insight, condensed from the metis
- * README. Styling consumes tokens only.
+ * Problem — the drift narrative, the four failure modes, and the Insight
+ * pull-quote that answers them.
+ *
+ * Copy is rendered verbatim from docs/copy.md §Problem and §Insight
+ * (ADR-0003: the copy deck is the single source of truth). The Insight
+ * pull-quote lives inside this section rather than in a seventh component,
+ * preserving phase-0's six-component structure (OVERVIEW.md §2.3).
+ *
+ * Every copy string sits on ONE source line — a wrapped version renders the
+ * same text, but this way the built output greps literally against the copy
+ * deck (the convention established in phase-1-ws-1.1).
+ *
+ * No copy string is split by an inline element and no em dash is generated
+ * from CSS, for the same reason: `<strong>Scope creep</strong> — …` in
+ * dist/index.html would fail a literal grep for the list item. The failure
+ * list is "styled" through the list marker, dividers and spacing only.
+ *
+ * Reveal (ADR-0005): the section opts into the page's shared observer with
+ * `data-reveal`, and its four blocks carry `.reveal` so they fade up in
+ * reading order. The stagger delays live in the style block below; the
+ * mechanism lives in index.astro. Nothing here sets a hidden base state — the
+ * rules below render the finished section, and the reveal is opt-in motion
+ * layered on top (the never-invisible rule).
  */
 ---
 
-<section id="problem" class="section">
-  <h2>The problem</h2>
-  <p>Placeholder for the problem and insight behind metis.</p>
+<section id="problem" class="section" data-reveal>
+  <h2 class="reveal">A single long agent session drifts.</h2>
+
+  <p class="lead reveal">It loses scope. It re-explores code it already understood. It fixes things nobody asked it to fix — and then it marks its own homework.</p>
+
+  <ul class="failures reveal">
+    <li>Scope creep — files touched that no one asked for</li>
+    <li>Self-review — the author grading the author</li>
+    <li>Lost context — every session re-discovers the last one</li>
+    <li>Mechanical fumbles — walking YAML, comparing slugs, evaluating booleans</li>
+  </ul>
+
+  <figure class="insight reveal">
+    <blockquote>
+      <p>Everything an agent fumbles should be deterministic tooling, not agent judgment.</p>
+    </blockquote>
+    <!-- The leading em dash is part of the attribution copy, so it is a real
+         character in the markup, not a CSS ::before that no grep can see. -->
+    <figcaption>— the one rule metis is built on</figcaption>
+  </figure>
 </section>
 
 <style>
@@ -17,8 +54,90 @@
     border-bottom: 1px solid var(--color-border);
   }
 
-  .section p {
-    margin-block-start: var(--space-3);
+  .lead {
+    margin-block-start: var(--space-4);
+    font-size: var(--text-lg);
     color: var(--color-muted);
+  }
+
+  /* --- Failure modes ----------------------------------------------------- */
+  .failures {
+    margin-block-start: var(--space-6);
+    /* Drops the UA list indent. --space-0 rather than a literal 0: tokens.css
+       defines the zero step, so spacing reads from the scale even when it is
+       nothing (f-003). */
+    padding: var(--space-0);
+    max-width: var(--measure);
+    list-style: none;
+    border-block-start: 1px solid var(--color-border);
+  }
+
+  .failures li {
+    position: relative;
+    padding-block: var(--space-3);
+    padding-inline-start: var(--space-4);
+    border-block-end: 1px solid var(--color-border);
+  }
+
+  /* Owl-gold marker square, used sparingly per OVERVIEW §3.2. Purely
+     decorative: it carries no text, so it has no contrast obligation and
+     nothing is lost when the pseudo-element is unsupported or unstyled. */
+  .failures li::before {
+    content: "";
+    position: absolute;
+    inset-inline-start: var(--space-0);
+    /* Optically centres the 4px square on the first line of a
+       --leading-normal (1.6) body line: (1.6em - 4px) / 2. */
+    inset-block-start: calc((1.6em - var(--space-1)) / 2);
+    width: var(--space-1);
+    height: var(--space-1);
+    background-color: var(--color-accent);
+  }
+
+  /* --- Insight pull-quote -----------------------------------------------
+     figure/figcaption rather than a nested <footer>: the caption is the
+     quote's attribution, and ADR-0004 makes <footer> placement a landmark
+     question this section has no business raising. */
+  .insight {
+    margin-block-start: var(--space-7);
+    padding-inline-start: var(--space-4);
+    /* Decorative accent rule — the quote's boundary is its indentation and
+       type size, so this bar carries no information of its own. */
+    border-inline-start: 2px solid var(--color-accent);
+  }
+
+  .insight blockquote p {
+    font-size: clamp(var(--text-lg), 3vw, var(--text-2xl));
+    line-height: var(--leading-snug);
+    font-weight: var(--weight-medium);
+    text-wrap: balance;
+  }
+
+  .insight figcaption {
+    margin-block-start: var(--space-3);
+    font-size: var(--text-sm);
+    color: var(--color-muted);
+  }
+
+  /* --- Reveal stagger ----------------------------------------------------
+     Choreography only: this component decides the order its blocks arrive
+     in, index.astro owns the animation itself. The delays are plain custom
+     properties, so they are inert until the page's rule reads them — which
+     it only does once `is-revealed` lands and only outside reduced motion.
+     No media query is needed here for the same reason.
+
+     80ms apart, four blocks, last one starting at 240ms: the section is
+     fully settled 540ms after it arms, well inside a single scroll gesture.
+     The h2 takes the 0ms default and so needs no declaration. */
+  .lead {
+    --reveal-delay: 80ms;
+  }
+
+  .failures {
+    --reveal-delay: 160ms;
+  }
+
+  .insight {
+    --reveal-delay: 240ms;
   }
 </style>

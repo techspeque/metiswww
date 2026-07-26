@@ -13,3 +13,112 @@ findings:
       category: protocol
       finding: 'Scenario 5 (copy-accuracy) scopes its check to ''the six section components (src/components/*.astro) that carry all page copy'' and concludes the OVERVIEW.md §3.4 copy-accuracy invariant is ''vacuously satisfied -- no CLI claims exist.'' That scope statement is inaccurate: src/pages/index.astro:16-18 also carries page copy -- the <title> and og:description meta text (''metis governs AI coding agents with a disciplined protocol: one slice at a time, file scope as a contract, and cross-vendor review...'') -- which Scenario 5 never examined. This IS copy about metis behavior, so the invariant is not vacuously satisfied (nothing to check) but substantively satisfied (a real behavioral claim that happens to match reality: one slice at a time matches the ledger''s single active-slice model, file scope as a contract matches brief owned_paths, cross-vendor review matches the instructions'' ''Reviews are cross-vendor by default''). The underlying invariant holds -- this is not a build defect -- but the report''s evidence trail misstates its own scope and mischaracterizes vacuous vs. substantive satisfaction, the same class of evidence-completeness gap as f-001. Fix: extend Scenario 5''s Setup to include src/pages/index.astro''s title/description, and correct the verdict language from ''vacuously satisfied'' to reflect the one substantive (and accurate) behavioral claim found there.'
       status: open
+    - id: f-003
+      date: "2026-07-26"
+      slice: phase-1-ws-1.2
+      severity: P3
+      category: maint
+      finding: 'src/components/Problem.astro:62 uses raw padding: 0 despite the slice acceptance criterion requiring spacing via --space-* only and tokens.css defining --space-0. Replace it with padding: var(--space-0).'
+      status: resolved
+      resolved_by: 'Problem.astro:65 now padding: var(--space-0); the marker offset at :84 tokenised alongside it. Independent clean build (rm -rf dist && npm run verify) green; grep for literal zero spacing/offset values in both components → no match.'
+    - id: f-004
+      date: "2026-07-26"
+      slice: phase-1-ws-1.2
+      severity: P3
+      category: ""
+      finding: 'Advisory (non-blocking): Lightning CSS rewrites Personas.astro:49''s ''@media (min-width: 768px)'' to media-query range syntax ''@media (width>=768px)'' in dist/_astro/*.css. Semantically identical, but range syntax is unsupported before Chrome 104 / Safari 16.4 / Firefox 63, where the query is dropped and the personas render single-column at all widths. That degradation is benign because the layout is mobile-first (one column is the base rule), and this is the project''s first min-width query so no prior slice exposed it. Worth a deliberate decision in phase 2 alongside the Lighthouse/browser-support work (ws-2.2) — either accept it or set an Astro build target that keeps the legacy syntax.'
+      status: resolved
+      resolved_by: 'Accepted after review: the built CSS still uses media-query range syntax, but unsupported legacy browsers fall back to the valid mobile-first single-column layout. The deliberate compatibility decision is recorded in the phase-2-ws-2.2 brief; independent Lighthouse 13.4.1 mobile and desktop runs both scored 100 in all required categories.'
+    - id: f-005
+      date: "2026-07-26"
+      slice: phase-1-ws-1.3
+      severity: P2
+      category: behavior
+      finding: 'Protocol.astro:68,75,183-213 does not convey the required blocked/rework return loop: the label sits after done in semantic/CSS-disabled order, while the rendered dashed riser has no direction and connects only to the gap between coded and reviewed rather than leaving reviewed and returning to coded. Additionally, the order-carrying <ol> at lines 68-73 uses list-style:none without role="list", so WebKit/VoiceOver can drop the list semantics the accessibility rationale relies on.'
+      status: resolved
+      resolved_by: 'Verified in a832522: Protocol.astro:97 preserves list semantics; Protocol.astro:100 nests the block branch under reviewed; Protocol.astro:194-221 and 290-305 draw a directed return path into coded in stacked and row layouts. Independent metis verify --post and scope audit pass.'
+    - id: f-006
+      date: "2026-07-26"
+      slice: phase-1-gate
+      severity: P2
+      category: behavior
+      finding: 'Page-level horizontal overflow below ~375px viewport width. Install.astro:49 renders the unbreakable token ''go install github.com/techspeque/metis/cmd/metis@latest'' inside a plain <p class="alternatives"> with no wrapping or overflow control; the adjacent <pre> one-liner scrolls internally (global.css:130 pre{overflow-x:auto}) but the paragraph does not. Measured in a width-controlled iframe (headless Chrome floors a real window at 500px): at 300/320/340/360px the document pins to documentElement.scrollWidth=364 against a smaller clientWidth, via the chain P.alternatives sw=340/cw=272 -> SECTION.section sw=340 -> MAIN sw=364 (main''s 2x24px inline padding). Clean at 375px and above (scrollWidth==clientWidth at 375, 390, 767, 768, 1023, 1024, 1440). Breakpoints themselves are correct: personas two-up from exactly 768px, lifecycle four-across from exactly 1024px. Not a declared phase-1-gate composition scenario and violates no OVERVIEW 3.4 invariant, so recorded advisory rather than blocking, on the f-004 precedent. Route to phase-2-ws-2.2 (accessibility/performance pass), where Lighthouse would surface it anyway. Fix candidates: overflow-wrap/word-break on .alternatives, or give the token the same <pre>/<code> scroll treatment as the one-liner.'
+      status: resolved
+      resolved_by: 'Resolved by explicit human risk acceptance: the sub-375px overflow remains reproducible and is deferred to phase-2-ws-2.2; it is not a declared phase-1 gate scenario.'
+    - id: f-007
+      date: "2026-07-26"
+      slice: phase-1-gate
+      severity: P3
+      category: protocol
+      finding: 'Rendered site copy exists outside docs/copy.md, which ADR-0003 pins as the single copy source. src/pages/index.astro:23-25 authors the <title> (''metis - the meta-harness for AI coding agents'') and the meta description, which Base.astro renders into <title>, <meta name=description> and all four og:/twitter: title+description tags. docs/copy.md has no Meta section, so these are the only rendered strings the phase-1 gate''s Scenario 2 (''every rendered string traceable to docs/copy.md'') cannot trace. They are substantively accurate against metis 0.0.6 -- ''one slice at a time'' matches metis next -o json returning a single active-slice object, ''file scope as a contract'' matches metis log --validate auditing files vs the brief''s owned_paths, ''cross-vendor review'' matches --agent being required with --flip reviewed -- so the OVERVIEW 3.4 copy-accuracy invariant holds and no build defect exists. This is an authority gap in ADR-0003''s coverage. They predate the deck (phase 0) and no phase-1 workstream owned index.astro. Fix: add a Meta section to docs/copy.md carrying the title and description verbatim, or scope ADR-0003''s rule explicitly to body copy.'
+      status: resolved
+      resolved_by: Resolved by the same verified Meta section in 5c7bdb6; docs/copy.md:19-23 matches src/pages/index.astro:23-25.
+    - id: f-008
+      date: "2026-07-26"
+      slice: phase-1-gate
+      severity: P3
+      category: doc
+      finding: 'tokens.css:66 documents the light-scheme hairline pairing ''border #E2DBCB on #FAF7F0 ... 1.10:1'' but the true sRGB-relative-luminance ratio is 1.29:1. Independent recomputation of the whole ratio table reproduced 11 of 12 other rows to the hundredth (17.68, 8.39, 8.17, 4.68, 16.14, 7.66, 7.46, 5.66, 5.53, 5.87, 18.91, 6.06), which is what isolates this row as the error rather than the method. No AA consequence: the token is decorative/non-text in both schemes and both values are far below the 3:1 informational-boundary threshold. Phase-0 artifact (slice phase-0-ws-0.1), surfaced by the phase-1 gate''s contrast recomputation. Fix: correct the number in the table row.'
+      status: advisory
+    - id: f-009
+      date: "2026-07-26"
+      slice: phase-1-gate
+      severity: P2
+      category: protocol
+      finding: Phase gate copy audit fails its declared criterion. .metis/plans/phase-1.md:139-141 requires every rendered string to be traceable to docs/copy.md, and ADR-0003 pins docs/copy.md as the copy source, but src/pages/index.astro:23-25 authors the rendered title and meta description outside that deck. The gate brief itself says this criterion is 'not literally met' while still returning PASS. Add the title and description verbatim to a Meta section in docs/copy.md (or formally amend the governing requirement through planning), then rerun the gate evidence and review.
+      status: resolved
+      resolved_by: 'Verified in 5c7bdb6: docs/copy.md:10-31 now contains the Meta title and description matching src/pages/index.astro:23-25; metis verify --post is green.'
+    - id: f-010
+      date: "2026-07-26"
+      slice: phase-1-gate
+      severity: P2
+      category: scope
+      finding: 'Scope audit fails: metis log phase-1-gate --validate -o json reports docs/copy.md as out_of_scope_files. The pre-committed brief owned only .metis/briefs/phase-1-gate.md; commit 5c7bdb6 added docs/copy.md to owned_paths and modified docs/copy.md in the same commit, so the scope contract was not established before the touch. Route the copy-deck change through a properly scoped slice or obtain an explicit human scope waiver recorded in the gate contract, then re-run validation.'
+      status: resolved
+      resolved_by: 'Verified after 51e7093: .metis/briefs/phase-1-gate.md:27-30 declares docs/copy.md as a machine-parseable owned path; metis log phase-1-gate --validate -o json returns ok=true and out_of_scope_files=[].'
+    - id: f-011
+      date: "2026-07-26"
+      slice: phase-2-ws-2.4
+      severity: P2
+      category: behavior
+      finding: 'src/components/Hero.astro:118-119 renders ''10 findings caught in review, all after the author had called the work done'', but the docs/copy.md:118-123 verification fails: f-006 (6ce3545), f-007 (106f067), and f-008 (9b6ca1e) were recorded for phase-1-gate before its first coded flip (4494d3d). The finding count is measured, but the universal chronology claim is false. Correct the authoritative Proof copy through properly scoped work, rerender it verbatim, and update its verification note.'
+      status: resolved
+      resolved_by: 'Label rewritten in docs/copy.md §Proof and rendered in Hero.astro: ''findings logged against this site''s own slices — every one public in the ledger, none ever removed''. Makes no authorship claim, so the f-006/7/8 exclusion the finding identified no longer applies; findings.yaml records no author field, so no such claim is recomputable anyway. ADR-0009 added to stop the recurrence: proof VALUES are Human-owned and a stale value is not a finding, while a false LABEL remains P2.'
+    - id: f-012
+      date: "2026-07-26"
+      slice: phase-2-ws-2.4
+      severity: P2
+      category: protocol
+      finding: 'Two blocking acceptance defects remain. (1) ADR-0009 is not reconciled through the coder-authored documentation: the brief still requires recomputation/matching at lines 30-31, 56-57 and 65-66 while lines 161-178 and ADR-0009:46-65 say stale values must not be recomputed as findings; docs/copy.md:85-88 says agents do not recompute but line 115 says recompute before approving; Hero.astro:38 repeats the withdrawn reviewer obligation; and brief lines 74 and 197-201 are stale after this slice made docs/copy.md owned and removed the quoted text. The scope contract therefore has mutually exclusive DoD/review instructions and stale claims. (2) Hero.astro:280,292,311 introduces raw spacing zeroes (column-gap/padding-inline-start) despite brief lines 27/58 requiring token discipline and --space-0 existing, repeating the exact f-003 class. Reconcile all in-scope docs with ADR-0009 and replace the raw spacing zeroes with var(--space-0).'
+      status: resolved
+      resolved_by: 'Both defects fixed. (1) ADR-0009 reconciled through every in-scope doc: brief architectural-context bullet struck through and redirected to ADR-0009; brief DoD and Test plan now require checking the est. prefix, qualifier and as-of date instead of recomputing values; brief ''Out-of-scope touches'' corrected (docs/copy.md is declared scope since cycle 1, not read-only); the stale blockquote note marked fixed rather than outstanding; docs/copy.md verification-note header rewritten to say the notes bind the reader and the Human, not the reviewer; Hero.astro header states values are Human-owned, never recomputed, stale value not a finding, false label still P2. Swept for surviving obligations - the four remaining ''recompute'' hits are past-tense history (ADR-0008''s withdrawn rule, and records of what was measured), not live instructions. (2) Spacing zeros at the three cited sites now read var(--space-0) per f-003; border widths stay literal 1px/0 since tokens.css defines no border scale and every hairline in the file is already written that way, and the reviewer did not cite them. Built CSS confirms the layout logic is byte-equivalent apart from the token indirection; all nine deck strings still render byte-identical; one script; verify green.'
+    - id: f-013
+      date: "2026-07-26"
+      slice: phase-2-ws-2.5
+      severity: P3
+      category: ""
+      finding: 'docs/copy.md §Workflow section-footer line renders ''The prompts stay four words long'', but none of the four prompts the same section publishes is four words: ''Go for dev of the next slice.'' (7), ''Go for review of the next slice.'' (7), ''Fix the findings from review.'' (5), ''Go for re-review — focus on the findings.'' (7). The claim is checkable against the page itself and is false as written, the same class f-011 raised for a rendered label (rhetorical rather than a CLI claim, hence advisory, not blocking). docs/copy.md is read_only in this slice''s scope and ADR-0003 makes the deck the only place the string may change, so phase-2-ws-2.5 renders it verbatim. Fix belongs to the deck owner: reword to something the page satisfies (e.g. ''stay one line long'' / ''stay a single sentence long''), or make the prompts literally four words.'
+      status: advisory
+    - id: f-014
+      date: "2026-07-26"
+      slice: phase-2-ws-2.6
+      severity: P2
+      category: behavior
+      finding: src/layouts/Base.astro:130 theme state is not fully synchronized. With no saved override, a live prefers-color-scheme change updates CSS but never reruns sync(), leaving aria-pressed and aria-label stale; the announced action can be opposite to the click result. Also, if localStorage.setItem throws, data-theme was already applied and remains set, contrary to ADR-0007 lines 71-73 requiring storage failure to fall back to OS-preference behavior. Resync on media-query changes and restore the OS-driven state on storage failure while retaining the 768-byte budget.
+      status: resolved
+      resolved_by: 'Verified built theme script: matchMedia change resyncs aria state when no override; stored override remains authoritative; localStorage read failure keeps the control hidden with no data-theme; write failure removes data-theme and resyncs to OS. Theme script is 719 B inner and remains before CSS.'
+    - id: f-015
+      date: "2026-07-26"
+      slice: phase-2-ws-2.3
+      severity: P2
+      category: behavior
+      finding: 'The workflow is not main-only: .github/workflows/deploy.yml:25 enables workflow_dispatch without a github.ref guard, so selecting dev runs both build and deploy (lines 41-90). Merely naming the github-pages environment does not impose a branch restriction in this workflow. This violates the plan acceptance criterion that deploy.yml triggers only on main and the ADR requirement that dev never deploys. Remove workflow_dispatch or explicitly gate deployment to refs/heads/main.'
+      status: resolved
+      resolved_by: 'Verified commit 1b29985: both build and deploy jobs independently require github.ref == refs/heads/main, so a dev-ref workflow_dispatch run executes neither build nor deployment; post-verify and scope audit are green.'
+    - id: f-016
+      date: "2026-07-26"
+      slice: phase-2-ws-2.3
+      severity: P3
+      category: maint
+      finding: .metis/briefs/phase-2-ws-2.3.md:453-455 says the workflow cannot be executed from dev and triggers on main only. workflow_dispatch can still create a dev-ref workflow run; the two job guards correctly skip all work and prevent deployment. This does not affect behavior or acceptance, but future documentation should say that no jobs execute and dev cannot deploy rather than that no dev trigger occurs.
+      status: advisory
