@@ -43,12 +43,19 @@
  *     it only because it is visibly labeled. Dropping either word is a P2.
  *   - The caption's "as of 2026-07-26". The date is what carries the claim
  *     when the ledger moves on; removing it is a finding. It has already
- *     moved: at the time of writing `.metis/slices-done.yaml` holds 10
- *     entries, not 9 — see this slice's brief for why that is a deferral to a
- *     refresh chore rather than an edit here (docs/copy.md is read-only to
- *     this slice, and f-010 established that touching it out of scope is a
- *     P2). The claim itself still holds at 10/10: every entry's reviewer slug
- *     differs from its coder.
+ *     moved — `.metis/slices-done.yaml` holds 10 entries, not 9, and
+ *     findings.yaml holds 11, not 10. Under ADR-0009 neither is a defect:
+ *     the §Proof values are Human-owned, agents render them verbatim, and
+ *     the Human refreshes all four plus the date once before release. Do not
+ *     "correct" a value here.
+ *
+ * Stat 2's label was rewritten in review cycle 1 (f-011). It previously
+ * claimed every finding was caught "after the author had called the work
+ * done", which was false for f-006/7/8 — coder self-recorded advisories
+ * committed before the phase-1 gate's first `flip coded`. findings.yaml
+ * carries no author field, so the label no longer makes any authorship
+ * claim. ADR-0009 draws the line this sits on: a stale value is not a
+ * finding, a false label is.
  *
  * Placement: immediately after the terminal figure, because §Proof says
  * "beneath the terminal caption" and the caption is the figure's last child.
@@ -138,7 +145,7 @@
 
       <div class="stat">
         <dt>10</dt>
-        <dd>findings caught in review, all after the author had called the work done</dd>
+        <dd>findings logged against this site's own slices — every one public in the ledger, none ever removed</dd>
       </div>
 
       <div class="stat">

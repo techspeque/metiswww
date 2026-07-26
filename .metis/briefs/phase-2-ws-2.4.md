@@ -34,9 +34,19 @@ subline.
 
 - **owned_paths:**
   - src/components/Hero.astro
+  - docs/copy.md
+  - .metis/adr/0009-proof-stats-are-human-owned.md
 - **read_only_paths:**
-  - docs/copy.md (§Proof — copy source, do not edit)
   - src/styles/tokens.css
+
+> Scope widened in review cycle 1, on the product owner's authorisation, to
+> resolve f-011. docs/copy.md moved from read_only to owned because f-011 is
+> a false *claim* in the deck, and ADR-0003 requires the fix to land in the
+> deck first — it cannot be fixed in the component alone. ADR-0009 is new and
+> is what stops the finding from recurring. Both were drafted for approval
+> and approved before being written; the deck edit is confined to §Proof.
+> Mechanism follows f-010's resolution (51e7093), which amended that brief's
+> owned_paths to declare the reality rather than leaving the scope audit red.
 
 ## Definition of Done
 
@@ -104,9 +114,52 @@ and resets `:first-child`. Widest cell min-content is 100px against the
 CSS rewrites both `min-width` queries to `width>=` range syntax, the same
 transform f-004 recorded as advisory; no new behaviour.
 
+## f-011 resolution (review cycle 1)
+
+**The finding was correct and is fixed.** Stat 2's label claimed all findings
+were caught "after the author had called the work done". False for three:
+f-006, f-007 and f-008 were advisories the coder self-recorded during the
+phase-1 gate, committed at 6ce3545/106f067/9b6ca1e — 30 seconds before
+4494d3d, that gate's first `flip coded`. Verified by commit timestamp.
+
+Two further facts found while confirming it:
+
+- `.metis/findings.yaml` records **no author, agent or reviewer field**
+  (fields are: id, date, slice, severity, category, finding, status,
+  resolved_by). Any authorship claim about a finding can therefore only be
+  inferred from commit position. The replacement label makes no authorship
+  claim at all, which removes the class of defect rather than restating it.
+- Raising f-011 took findings.yaml to 11 entries, making stat 2's own value
+  wrong in the act of reporting stat 2. That is the loop ADR-0009 exists to
+  cut.
+
+**Replacement label** (product owner chose the broad option over a narrower
+"raised by an independent reviewer…" wording that would have forced the value
+to 8): "findings logged against this site's own slices — every one public in
+the ledger, none ever removed". True of all 11 regardless of who raised them.
+"None ever removed" is independently auditable: replaying every commit that
+touched findings.yaml gives a monotonically non-decreasing entry count
+(0,1,2,3,3,4,5,5,6,7,8,9,9,9,9,10,10,11), so nothing was ever deleted. The
+verification note in the deck carries that command.
+
+**Value stays `10`** and is now merely stale, which ADR-0009 demotes to a
+non-finding. It is the Human's pre-release refresh, not slice work.
+
+## ADR-0009 (new, drafted this cycle and approved)
+
+Amends ADR-0008 — does not supersede it. ADR-0008 obliged the reviewer of any
+stats-rendering slice to recompute every number, but the ledger those numbers
+measure is mutated by reviewing the slice that renders them, so each fix
+invalidates the next number. The ADR draws the line that was missing: a stale
+**value** is not a finding, a false **label** is. Values become Human-owned
+and are refreshed once before the dev → main merge. Every other ADR-0008
+clause — estimates visibly labeled, no invented percentages, verification
+notes retained so a reader can audit — stands unchanged.
+
 ## Notes for the reviewer
 
-**Stat 1 (`9/9`) is stale by one, and rendering it verbatim is deliberate.**
+**Stat 1 (`9/9`) is stale by one — under ADR-0009 this is now explicitly not
+a finding, and rendering it verbatim is correct.**
 Recomputed at `fdde402` (archive of phase-2-ws-2.1), `.metis/slices-done.yaml`
 holds **10** entries, not the 9 the §Proof verification note enumerates. The
 count moved after the copy deck was written; the *claim* did not — all 10
@@ -114,20 +167,21 @@ entries carry `reviewed: true` with a `reviewer` slug different from their
 `coder`, so "independently reviewed — never by their author" still holds at
 10/10.
 
-This is the situation ADR-0008 anticipates: the as-of date carries the claim,
-and "refreshing them is a future chore slice that re-runs every verification
-note". It is not a fix for this slice. Correcting it here would mean editing
-docs/copy.md, which this brief declares read-only and which f-010 already
-established as an out-of-scope P2. **Recommend a phase-2 chore slice** that
-re-runs all four verification notes and re-dates the caption — ideally after
-2.6, so it captures a settled ledger rather than one that moves again on the
-next archive.
+This is the situation the as-of date exists to carry, and ADR-0009 now says
+so outright: the value is Human-owned, agents render it verbatim, and it is
+refreshed once before the dev → main merge rather than chased slice by slice.
+The earlier draft of this note recommended a phase-2 chore slice for the
+refresh; ADR-0009 supersedes that — it is a Human act needing no ledger entry,
+and a chore slice would itself move the numbers again on archive.
 
-Stats 2 (`10` findings, f-001..f-010) and 3 (`0` out-of-scope files,
-`metis log phase-1-gate --validate -o json` → `ok=true`) both recompute clean
-as of this commit. Note that recording an advisory finding against this slice
-would itself invalidate stat 2 — hence this brief note rather than
-`metis findings record`.
+Stat 2's value (`10`) is likewise stale at 11 and likewise not a finding — see
+the f-011 section above for the label fix, which *was* required. Stat 3 (`0`
+out-of-scope files, `metis log phase-1-gate --validate -o json` → `ok=true`)
+recomputes clean as of this commit.
+
+Note the reason none of this was raised via `metis findings record`: doing so
+would increment findings.yaml and invalidate stat 2 again. The brief is the
+right instrument for a stats observation, and ADR-0009 rule 1 now says so.
 
 **Vendor-line claims check out.** `metis surface generate` exists in v0.0.6
 (`metis surface --help` → `generate` / `validate`), and all four adapter files

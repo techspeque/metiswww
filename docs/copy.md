@@ -80,10 +80,15 @@ $ █
 ## Proof (hero stats strip)
 
 > Rendered beneath the terminal caption (slice phase-2-ws-2.4). Governed by
-> ADR-0008: every number below is measured from THIS repository's public
-> ledger — the reviewer must recompute each one via its verification note.
-> No estimates render on the site unless visibly labeled `est.`; none are
-> used here.
+> ADR-0008 and ADR-0009: every number below is measured from THIS
+> repository's public ledger and carries a verification note, so a reader
+> can recompute it. Under ADR-0009 the values are Human-owned — agents
+> render them verbatim, do not recompute them, and a stale value is not a
+> finding; the Human refreshes all four and the as-of date once before
+> release. A *label* that makes a false claim remains a P2.
+> One estimate is used here — stat 4 — and renders visibly labeled `est.`
+> per ADR-0008; its prefix and "at best observed" qualifier may not be
+> dropped.
 
 **Kicker (small, above the stats):** Dogfood numbers — this site, built
 under its own protocol
@@ -92,8 +97,8 @@ under its own protocol
 **Stat 1 — label:** slices independently reviewed — never by their author
 
 **Stat 2 — value:** `10`
-**Stat 2 — label:** findings caught in review, all after the author had
-called the work done
+**Stat 2 — label:** findings logged against this site's own slices — every
+one public in the ledger, none ever removed
 
 **Stat 3 — value:** `0`
 **Stat 3 — label:** out-of-scope files shipped — file scope is
@@ -115,12 +120,32 @@ ledger as of 2026-07-26; the fourth is a labeled estimate —
 >   `reviewed: true` and a `reviewer` slug different from its `coder`
 >   (phase 0: claude-code/opus vs claude-code/sonnet; phase 1:
 >   claude-code/opus vs opencode/gpt-5.6-sol).
-> - **10:** count entries in `.metis/findings.yaml` (f-001..f-010), or
->   `metis findings`. "After the author had called the work done": under
->   the protocol, review begins only after the coder's `coded` flip
->   (`metis commit --flip coded`); every finding's `slice` field points at
->   work whose flip preceded the finding — check the git history of
->   `.metis/findings.yaml` against the flip commits.
+> - **10:** count entries in `.metis/findings.yaml`, or `metis findings`.
+>   "None ever removed" is the auditable half of the claim: replay every
+>   commit that touched the file and count entries at each —
+>   `git log --format=%h -- .metis/findings.yaml | while read c; do
+>   git show $c:.metis/findings.yaml | grep -c '  - id: f-'; done` — the
+>   sequence never decreases, so no finding has been deleted or rewritten
+>   out. Statuses at the time of writing: 6 resolved, 3 open, 2 advisory;
+>   the claim is that all of them are on the public record, not that all
+>   were fixed.
+>
+>   **This value is Human-owned (ADR-0009) and WILL run stale** — it stood
+>   at 11 within an hour of being written, because f-011 was raised against
+>   this very stat. That is expected and is not a finding: the as-of date
+>   carries it and the Human refreshes it before release. Agents render it
+>   verbatim and do not recompute it. What remains a P2 is the *label*
+>   making a false claim.
+>
+>   The label was rewritten during phase-2-ws-2.4 review cycle 1. It
+>   previously read "findings caught in review, all after the author had
+>   called the work done", which was false: f-006, f-007 and f-008 were
+>   advisories the coder self-recorded during the phase-1 gate, committed
+>   before that gate's first `flip coded` (6ce3545/106f067/9b6ca1e vs
+>   4494d3d). Note also that `.metis/findings.yaml` records no author or
+>   reviewer field at all, so any authorship claim about a finding can only
+>   be inferred from commit position — which is why the label no longer
+>   makes one.
 > - **0:** the one out-of-scope touch ever recorded (f-010,
 >   docs/copy.md outside the phase-1-gate brief's owned_paths) was caught
 >   by the scope audit and remediated before merge; final state verified
