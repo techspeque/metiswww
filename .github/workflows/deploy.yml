@@ -20,8 +20,9 @@ on:
   push:
     branches: [main]
   # Manual re-run, e.g. after the Pages source is switched on for the first
-  # time. Still main-only: workflow_dispatch offers whatever ref it is asked
-  # for, so the deploy job is not what guards this — the Pages environment is.
+  # time. `workflow_dispatch` offers a ref picker listing every branch, so
+  # this trigger alone does NOT keep the workflow main-only — the `if` guard
+  # on both jobs below is what does (finding f-015, review cycle 1).
   workflow_dispatch:
 
 # Least privilege: read the code, write a Pages deployment, and mint the OIDC
@@ -40,6 +41,21 @@ concurrency:
 
 jobs:
   build:
+    # ADR-0006: `dev` never deploys. The `push` trigger already restricts
+    # itself to main; this guard is what extends that to `workflow_dispatch`,
+    # which would otherwise run this workflow from any ref the dispatcher
+    # picks. Guarding `build` as well as `deploy` means a dispatch from `dev`
+    # produces no artifact either, not just no deployment.
+    #
+    # `github.ref`, not `github.ref_name`: the full ref distinguishes the
+    # branch `main` from a tag of the same name.
+    #
+    # This is the enforcement, and it is deliberately in the file. The
+    # `github-pages` environment does carry a branch restriction of its own,
+    # but that is a repository setting — invisible from here, changeable
+    # without a commit, and therefore not something a plan acceptance
+    # criterion can rest on.
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -80,6 +96,12 @@ jobs:
   deploy:
     # Gate: without a green build job there is no artifact and no deployment.
     needs: build
+    # Repeated rather than inherited: `if` is not inherited through `needs`,
+    # and a skipped dependency skipping its dependents is a consequence of
+    # how `needs` evaluates rather than a rule this file states. Stating it
+    # on the job that actually publishes makes the main-only property true of
+    # this job on its own terms.
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment:
       name: github-pages

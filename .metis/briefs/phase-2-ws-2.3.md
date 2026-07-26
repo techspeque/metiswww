@@ -217,6 +217,33 @@ component into a slice that owns neither it nor its landmark decision
 `workflow_dispatch`, the `github-pages` environment on the deploy job, and
 the `pages: write` / `id-token: write` permissions `deploy-pages` requires.
 
+**Main-only, enforced in the file (f-015, review cycle 1).** As first
+written, this workflow was not main-only: the `push` trigger was restricted
+to `main`, but `workflow_dispatch` shows a ref picker listing every branch,
+so a dispatch from `dev` would have run both jobs. The original comment
+said as much and pointed at the `github-pages` environment as the guard.
+The reviewer is right that this does not hold, for two reasons — naming an
+environment imposes no branch restriction by itself, and even the branch
+restriction GitHub does attach to that environment by default is a
+repository setting: invisible from this repo, changeable without a commit,
+and therefore not something a plan acceptance criterion can rest on.
+
+Both jobs now carry `if: github.ref == 'refs/heads/main'`.
+
+- Guarding **`build`** as well as `deploy` means a dispatch from `dev`
+  produces no artifact either, not merely no deployment.
+- Repeated on **`deploy`** rather than left to `needs`, because `if` is not
+  inherited: a skipped dependency skipping its dependents is a consequence
+  of how `needs` evaluates, not a rule this file states. The publishing job
+  should be main-only on its own terms.
+- `github.ref`, not `github.ref_name`: the full ref distinguishes the
+  branch `main` from a tag of the same name.
+
+`workflow_dispatch` is kept rather than removed — the finding offered
+either remedy. It is the re-run path for the human's first release once the
+Pages source is switched on, which is a real need, and with the guard in
+place it can no longer reach any ref but `main`.
+
 **On "verify precedes build".** `npm run verify` *is* `astro check &&
 astro build` — both the gate and the build — and ADR-0006 names it
 directly ("The deploy workflow builds with the same `npm run verify` gate
@@ -408,6 +435,15 @@ a `pages` concurrency group with `cancel-in-progress: false`; a `build` job
 configure-pages → upload-pages-artifact of `./dist`); and a `deploy` job
 gated on `needs: build`, in the `github-pages` environment, running
 `deploy-pages`.
+
+Re-parsed after the f-015 fix, reading the guard off the parsed structure
+rather than the source text:
+
+```
+triggers: {"push": {"branches": ["main"]}, "workflow_dispatch": null}
+build  | if = "github.ref == 'refs/heads/main'" | needs = None  | env = None
+deploy | if = "github.ref == 'refs/heads/main'" | needs = build | env = github-pages
+```
 
 One artifact of that parse worth naming so it is not read as a defect: a
 YAML 1.1 parser (PyYAML) resolves the `on:` key to the boolean `true`.
