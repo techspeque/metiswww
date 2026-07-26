@@ -1,14 +1,80 @@
 ---
 /**
- * Protocol — placeholder section for the Phase-0 skeleton.
- * Phase 1 fills this with the animated slice-lifecycle diagram. Styling
- * consumes tokens only.
+ * Protocol — the slice lifecycle (pending → coded → reviewed → done, with the
+ * blocked → rework return path) as an inline diagram with a staged,
+ * scroll-triggered reveal. This carries the site's ONE permitted script
+ * (ADR-0002).
+ *
+ * Copy is rendered verbatim from docs/copy.md §Protocol (ADR-0003: the copy
+ * deck is the single source of truth). Every copy string sits on ONE source
+ * line and is never split by an inline element, so the built output greps
+ * literally against the deck (convention from phase-1-ws-1.1, documented in
+ * phase-1-ws-1.2). Two consequences worth naming:
+ *
+ *   - The deck's captions already begin with the state name ("pending — …"),
+ *     so the states carry no separate heading element: one would duplicate the
+ *     word, and wrapping the name in a <span> to style it would put markup
+ *     inside the string. The state name loses distinct typography; a literal
+ *     cross-vendor grep is worth more than that.
+ *   - `metis next` is backticked in the deck but renders as plain text here,
+ *     for the same reason — a <code> element inside the caption would break
+ *     the grep.
+ *
+ * Structure is the diagram: <ol> carries the order, so the flow reads
+ * correctly with CSS disabled and the connectors between states can be purely
+ * decorative CSS. The "blocked → rework" arrow is different — that string IS
+ * rendered copy, so its "→" is a real character in the markup rather than a
+ * CSS ::before, exactly as phase-1-ws-1.2 treats its em dashes.
+ *
+ * Color: aegean is decorative-only in here. #2E8C83 on the card surface
+ * #171B22 is 4.27:1 — below AA for text, and a pairing tokens.css's ratio
+ * table does not cover (it documents aegean on the base #0E1116 at 4.68:1).
+ * So aegean draws connectors and the loop chip's boundary, which carry no
+ * text and no information the markup lacks; all diagram text uses
+ * --color-text / --color-muted, whose pairings are in that table.
+ *
+ * Animation (ADR-0002): the base rules render the finished diagram. The
+ * staged reveal lives entirely inside `prefers-reduced-motion: no-preference`
+ * and is keyed off an `is-revealed` class, with `animation-fill-mode:
+ * backwards` holding each state's start frame through its stagger delay —
+ * that is what avoids an `opacity: 0` base. With JS off, the observer
+ * unsupported, or reduced motion set, the diagram is complete and static,
+ * never hidden (ADR-0005's never-invisible rule, ahead of its slice).
+ *
+ * The script at the foot of this file is the one the site is allowed
+ * (ADR-0002). `is:inline` is required: a processed script element would be
+ * bundled into an external module, and the policy is an *inline* observer.
+ * is:inline is passed through verbatim and is not minified, so it is written
+ * hand-minified on one line.
+ *
+ * It watches the section rather than the diagram: intersectionRatio is a
+ * fraction of the target's own height, so a threshold on a diagram taller
+ * than the viewport could never be met on a narrow phone and the reveal would
+ * never fire. Watching the section at the default threshold also arms the
+ * stagger at the heading, before the states scroll up into view. The class
+ * lands on an element declared in this component, which is what lets Astro's
+ * scoped selectors match it. Unobserves on first hit — the reveal plays once.
+ *
+ * This rationale lives in the frontmatter, not in an HTML comment beside the
+ * script: frontmatter comments are compiled away, and an HTML comment naming
+ * a script element literally would survive into dist and break the phase
+ * gate's "exactly one script element in dist/index.html" count.
  */
 ---
 
 <section id="protocol" class="section">
-  <h2>The protocol</h2>
-  <p>Placeholder for the slice-lifecycle diagram.</p>
+  <h2>One slice at a time. Every time.</h2>
+
+  <ol class="lifecycle">
+    <li class="state">pending — dispatched by metis next, never chosen by the agent</li>
+    <li class="state">coded — brief committed first, verify green, scope audited</li>
+    <li class="state">reviewed — a different agent signs off, identity checked</li>
+    <li class="state">done — archived with the full paper trail</li>
+  </ol>
+
+  <p class="loop">blocked → rework</p>
+
+  <p class="closing">Findings become rules. Rules prevent repeats. The system gets better because it remembers.</p>
 </section>
 
 <style>
@@ -17,8 +83,181 @@
     border-bottom: 1px solid var(--color-border);
   }
 
-  .section p {
-    margin-block-start: var(--space-3);
+  /* --- The flow ----------------------------------------------------------
+     Mobile-first: a single column, chained top to bottom. The four-across
+     row is one media query at 1024px — below that the captions would be
+     ~28 characters wide and the "diagram" would read as four tall slivers.
+     A two-column intermediate step is deliberately skipped: it would wrap
+     the chain mid-flow and the connectors would have to change direction
+     between items 2 and 3. */
+  .lifecycle {
+    display: grid;
+    gap: var(--space-4);
+    margin-block-start: var(--space-6);
+    /* Drops the UA list indent — the token zero, not a raw 0 (f-003). */
+    padding: var(--space-0);
+    list-style: none;
+  }
+
+  /* Text on surface: 16.14:1 dark, 18.91:1 light (tokens.css ratio table).
+     The hairline only sharpens an edge the fill already draws, so the
+     decorative --color-border is the right token, as in Personas. */
+  .state {
+    position: relative;
+    padding: var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background-color: var(--color-surface);
+    font-size: var(--text-sm);
+  }
+
+  /* --- Connectors --------------------------------------------------------
+     Decorative: the <ol> already carries order and direction, so nothing is
+     lost when these are unsupported, unstyled, or unseen. ::before is the
+     line, ::after the head; the line's length matches the grid gap exactly,
+     so it spans the space between two cards and touches neither. */
+  .state:not(:first-child)::before,
+  .state:not(:first-child)::after {
+    content: "";
+    position: absolute;
+    background-color: var(--color-secondary);
+  }
+
+  .state:not(:first-child)::before {
+    inset-block-end: 100%;
+    inset-inline-start: 50%;
+    width: 2px;
+    height: var(--space-4);
+    transform: translateX(-50%);
+  }
+
+  /* Two borders on a rotated square make the chevron: 135deg points it down
+     the column. translate(-50%, 50%) centres it on the card's top edge, at
+     the end of the line above. */
+  .state:not(:first-child)::after {
+    inset-block-end: 100%;
+    inset-inline-start: 50%;
+    width: var(--space-2);
+    height: var(--space-2);
+    border-block-start: 2px solid var(--color-secondary);
+    border-inline-end: 2px solid var(--color-secondary);
+    background-color: transparent;
+    transform: translate(-50%, 50%) rotate(135deg);
+  }
+
+  /* 1024px is a raw length by design: tokens.css owns colour, type and
+     spacing and deliberately defines no breakpoint scale (the reasoning
+     phase-1-ws-1.2 recorded for its 768px query). */
+  @media (min-width: 1024px) {
+    .lifecycle {
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--space-5);
+    }
+
+    /* The chain turns to run left-to-right: the line moves into the gap
+       before each card, the chevron rotates to point along it. */
+    .state:not(:first-child)::before {
+      inset-block-end: auto;
+      inset-block-start: 50%;
+      inset-inline-start: auto;
+      inset-inline-end: 100%;
+      width: var(--space-5);
+      height: 2px;
+      transform: translateY(-50%);
+    }
+
+    .state:not(:first-child)::after {
+      inset-block-end: auto;
+      inset-block-start: 50%;
+      inset-inline-start: auto;
+      inset-inline-end: 100%;
+      transform: translate(50%, -50%) rotate(45deg);
+    }
+  }
+
+  /* --- The block path ----------------------------------------------------
+     A chip hanging off the flow on a dashed riser. Its dashed boundary is
+     decorative — the label is the information — and aegean on the page base
+     is 4.68:1 either way, past the 3:1 that a meaningful boundary would
+     need. Muted text on base: 8.39:1 dark, 5.66:1 light. */
+  .loop {
+    position: relative;
+    /* Leaves exactly the riser's height between the flow and the chip. */
+    margin-block-start: var(--space-5);
+    /* fit-content over the inherited --measure: the chip should hug its
+       label rather than stretch to a paragraph's width. Centred so the riser
+       meets the flow where the block path actually leaves it: in the column
+       layout that is the gap between "coded" and "reviewed" — the centre of a
+       four-track grid falls exactly there — and in the stacked layout it is
+       the chain's own vertical line, which runs down the middle of the
+       cards. Left-aligned, the chip would appear to hang off "pending". */
+    width: fit-content;
+    margin-inline: auto;
+    padding: var(--space-2) var(--space-3);
+    border: 1px dashed var(--color-secondary);
+    border-radius: var(--radius);
+    font-size: var(--text-sm);
     color: var(--color-muted);
   }
+
+  /* The riser. Half the 2px stroke back from centre, so it lands on the
+     midpoint rather than 2px past it. */
+  .loop::before {
+    content: "";
+    position: absolute;
+    inset-block-end: 100%;
+    inset-inline-start: calc(50% - 1px);
+    width: var(--space-0);
+    height: var(--space-5);
+    border-inline-start: 2px dashed var(--color-secondary);
+  }
+
+  .closing {
+    margin-block-start: var(--space-6);
+    color: var(--color-muted);
+  }
+
+  /* --- Staged reveal ------------------------------------------------------
+     Opt-in only. Everything above renders the finished diagram, so no-JS,
+     unsupported-observer and reduced-motion users all get the complete final
+     state with no delay — the `is-revealed` class adds motion, it never adds
+     visibility. `backwards` fill makes each state hold the start frame
+     through its delay, so the stagger needs no hidden base state.
+     320ms each, longest delay 560ms: inside ADR-0002's 200-700ms envelope,
+     and nothing loops. */
+  @media (prefers-reduced-motion: no-preference) {
+    .is-revealed .state,
+    .is-revealed .loop {
+      animation: state-in 320ms var(--ease-out) backwards;
+    }
+
+    .is-revealed .state:nth-child(2) {
+      animation-delay: 140ms;
+    }
+
+    .is-revealed .state:nth-child(3) {
+      animation-delay: 280ms;
+    }
+
+    .is-revealed .state:nth-child(4) {
+      animation-delay: 420ms;
+    }
+
+    .is-revealed .loop {
+      animation-delay: 560ms;
+    }
+  }
+
+  @keyframes state-in {
+    from {
+      opacity: 0;
+      transform: translateY(var(--space-2));
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
 </style>
+
+<script is:inline>new IntersectionObserver((es,o)=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add("is-revealed");o.unobserve(e.target)}})).observe(document.getElementById("protocol"))</script>
