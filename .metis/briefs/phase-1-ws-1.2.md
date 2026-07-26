@@ -65,3 +65,15 @@ Results (2026-07-26):
   in `dist/index.html` (`grep -F` per string)
 - `grep -o '<script' dist/index.html` → 0; no `&mdash;`/`&#8212;` in dist
 - `grep -nE '#[0-9a-fA-F]{3,8}'` on both components → no match
+
+## Review cycle 1 — fix
+
+f-003 (P3, maint): `.failures` used a literal `padding: 0` where the
+acceptance criterion asks for `--space-*`, and tokens.css defines `--space-0`.
+Now `padding: var(--space-0)`. The marker's `inset-inline-start` took the same
+treatment for consistency — it sits beside an already-tokenised
+`inset-block-start` — so no offset or spacing value in either component is a
+literal any more. Re-verified: `metis verify --post` ALL GREEN, 13/13 copy
+strings still byte-for-byte in dist, 0 `<script>`, no raw hex, and
+`grep -nE '(padding|margin|gap|inset|top|right|bottom|left)[^:]*:\s*0'` on
+both components → no match.

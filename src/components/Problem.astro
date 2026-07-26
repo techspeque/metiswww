@@ -59,7 +59,10 @@
   /* --- Failure modes ----------------------------------------------------- */
   .failures {
     margin-block-start: var(--space-6);
-    padding: 0;
+    /* Drops the UA list indent. --space-0 rather than a literal 0: tokens.css
+       defines the zero step, so spacing reads from the scale even when it is
+       nothing (f-003). */
+    padding: var(--space-0);
     max-width: var(--measure);
     list-style: none;
     border-block-start: 1px solid var(--color-border);
@@ -78,7 +81,7 @@
   .failures li::before {
     content: "";
     position: absolute;
-    inset-inline-start: 0;
+    inset-inline-start: var(--space-0);
     /* Optically centres the 4px square on the first line of a
        --leading-normal (1.6) body line: (1.6em - 4px) / 2. */
     inset-block-start: calc((1.6em - var(--space-1)) / 2);
