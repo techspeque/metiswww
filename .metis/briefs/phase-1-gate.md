@@ -26,20 +26,21 @@ landmark amendment (ws-1.4) — composed into the content-complete single page.
 
 - **owned_paths:**
   - .metis/briefs/phase-1-gate.md
+  - docs/copy.md — **added in review cycle 1**, to close f-009 (§7)
 - **read_only_paths:**
   - OVERVIEW.md (§3.2, §3.4)
   - .metis/plans/phase-1.md (§Phase Gate)
-  - docs/copy.md (the copy authority, ADR-0003)
   - .metis/adr/0002, 0003, 0004 (the policies this gate enforces)
   - src/** and dist/** (validated as built artifacts; not modified)
 
-> Gate discipline: this slice produced the evidence report only. No product
-> code was touched — `git status --porcelain` returned 0 lines before this
-> report was written, so the only dirty path is the report itself. All render
-> checks ran against throwaway `dist` copies in the session scratchpad; the
-> repository's own `dist/` was only rebuilt, never edited. Where a scenario
-> surfaced a defect (§5), it was recorded and routed, not fixed: the fix
-> belongs to a workstream slice, which is a planning decision.
+> Gate discipline: this slice produces the evidence report, plus the one copy-
+> deck edit the reviewer directed in cycle 1. **No product code was touched** in
+> either cycle: `src/**` is untouched, and the built output is byte-identical
+> across the deck edit (§7 proves it — same CSS content hash, same 14,420 bytes).
+> All render checks ran against throwaway `dist` copies in the session
+> scratchpad; the repository's own `dist/` was only rebuilt, never edited. Where
+> a scenario surfaced a *code* defect (§5 f-006), it was recorded and routed, not
+> fixed — that fix belongs to a workstream slice, which is a planning decision.
 
 ---
 
@@ -142,6 +143,11 @@ or component exists under `src`.
       (`[label](url)` → `label`, backticks and `**` removed, whitespace
       collapsed) — i.e. the check is on the deck side, never on the rendered
       side.
+- **Action (b′) head → deck (added in cycle 1):** extract every rendered head
+      copy string — `<title>` and the `description` / `og:title` /
+      `og:description` / `twitter:title` / `twitter:description` `content`
+      values — and require each to trace to the deck under the same
+      deck-side-only normalisation.
 - **Action (c):** byte-for-byte diff of the rendered hero transcript against
       §Hero-terminal.
 - **Action (d):** run or `--help` every command string the page renders, and
@@ -151,7 +157,16 @@ or component exists under `src`.
     the install one-liner appears **twice** (§Hero "beneath the terminal" and
     §Install "mono block"), and the three metis URLs recur across Hero CTAs and
     the footer link cluster.
-  - **(b)** **51/51 visible text nodes traceable**, 0 untraceable.
+  - **(b)** **51/51 visible text nodes traceable**, 0 untraceable. Re-run after
+    the cycle-1 deck edit: still 51/51, 0 untraceable.
+  - **(b′)** **6/6 head copy strings traceable**, 0 untraceable — `<title>`,
+    `description`, `og:title`, `og:description`, `twitter:title`,
+    `twitter:description`. Beyond traceability, the deck's §Meta values are
+    **byte-identical** to the literals `index.astro:23-25` authors (`title ==
+    deck Title` → True; `description == deck Description` unwrapped → True), and
+    the title ships as `<title>…</title>` verbatim with the description
+    appearing 3× in `dist` (name, og, twitter) — so "renders verbatim from the
+    deck" is true in the strong sense, not just the normalised one.
   - **(c)** transcript matches §Hero-terminal **byte-for-byte** — 204 bytes
     rendered, 204 bytes in the deck, `==` True. Zero HTML entities in the
     transcript, and zero in the whole document (`&…;` scan returns `[]`), so the
@@ -191,20 +206,25 @@ or component exists under `src`.
   animation", `risk: medium`, `coder: claude-code/opus`). No line is invented,
   so §3.4's "no aspirational output" holds; the elision is truncation, marked.
 
-- **Verdict:** **pass for body copy; not literally met for head copy** —
-  stated plainly rather than absorbed into the verdict. All 51 body text nodes
-  trace to the deck. The `<title>` and meta description do **not**: the deck has
-  no §Meta section, `index.astro:23-25` authored those strings in phase 0, and
-  no phase-1 workstream owned that file. They are *substantively* accurate —
-  "one slice at a time" ← `metis next -o json` returns a single active-slice
-  object; "file scope as a contract" ← `metis log --validate`; "cross-vendor
-  review" ← the `--agent` requirement; and the title's positioning matches
-  OVERVIEW §1 and `metis --help`. So the §3.4 copy-accuracy invariant holds, but
-  ADR-0003's "the pinned copy source is docs/copy.md" does not yet cover the
-  head. Recorded as a P3 in §5 with the fix: add a §Meta section to the deck.
-- **Evidence:** `find src public` + `grep -rl` file-set enumeration; the 41-string
-      and 51-node scripted comparisons; the 204-byte transcript diff; the command
-      and URL tables above.
+- **Verdict:** **pass — fully, in both directions.**
+  **Cycle 0 recorded this scenario as "pass for body copy; not literally met for
+  head copy" and still returned PASS. The reviewer blocked that, correctly**
+  (f-009): a gate cannot pass a criterion its own evidence says is unmet. Cycle 1
+  closes the gap at its source rather than re-arguing it — `docs/copy.md` now
+  carries a **§Meta** section holding the title and description verbatim, so
+  every rendered string on the page, head and body, traces to the deck:
+  **57/57** (51 body nodes + 6 head strings), 0 untraceable. ADR-0003's pinned
+  source now covers the whole document, and the plan's criterion at
+  `.metis/plans/phase-1.md:139-141` is met literally, not by interpretation.
+  The claims themselves were already true and remain verified against metis
+  0.0.6 — "one slice at a time" ← `metis next -o json` returns a single
+  active-slice object; "file scope as a contract" ← `metis log --validate`;
+  "cross-vendor review" ← the `--agent` requirement — and that verification is
+  now recorded in the deck beside the copy, where the next editor will see it.
+- **Evidence:** `find src public` + `grep -rl` file-set enumeration; the 41-string,
+      51-node and 6-head-string scripted comparisons; the byte-identical
+      deck-vs-`index.astro` diff; the 204-byte transcript diff; the command and
+      URL tables above. Re-run end-to-end in cycle 1 (§7).
 
 ### Scenario 3: Animation policy (ADR-0002) — one script, plays once, reduced-motion complete
 
@@ -347,7 +367,7 @@ or component exists under `src`.
 | Boundary | Provider | Consumer | Contract | Status |
 |---|---|---|---|---|
 | Design tokens | `src/styles/tokens.css` | global.css, Base.astro, 6 components, index.astro | semantic `--color-*` / `--text-*` / `--space-*` custom properties | **verified** — 50 distinct `var(--…)` references across `src` (comments stripped), all 50 defined; 0 undefined. Raw hex appears only in tokens.css's brand block; every `#…` in a `.astro` file is inside a CSS comment documenting a contrast ratio, never in a declaration. No `rgb()/hsl()/named` colors anywhere. |
-| Copy deck | `docs/copy.md` | 6 components | components render deck strings verbatim (ADR-0003) | **verified for body copy** — 41/41 deck strings present in dist, 51/51 rendered nodes traceable, transcript byte-identical. **Gap:** head `<title>`/description come from `index.astro:23-25`, not the deck (§2 verdict, f-007). |
+| Copy deck | `docs/copy.md` | 6 components **+ `index.astro`** | every rendered string comes from the deck verbatim (ADR-0003) | **verified, whole document** — 41/41 deck strings present in dist; **57/57** rendered strings traceable (51 body nodes + 6 head strings); transcript byte-identical at 204 B; deck §Meta byte-identical to `index.astro:23-25`. The head gap that cycle 0 reported here was closed in cycle 1 (§7). |
 | Layout shell | `src/layouts/Base.astro` | `src/pages/index.astro` | HTML shell + `<slot />`, head/meta/theming | **verified** — one `<main>` renders through the shell with all five section ids; title/description props reach `<title>`, `<meta name=description>` and all four og:/twitter: tags. |
 | Landmark split | `src/pages/index.astro` | `Footer.astro` | Footer is a sibling of `<main>`, not a descendant (ADR-0004) | **verified** — empty string between `</main>` and `<footer>`; Footer.astro re-declares the container rules because Astro's scoped `main` rule cannot reach a sibling, and the render confirms the footer is inset like every section above it. |
 | Observer ↔ diagram | `Protocol.astro` inline script | `<section id="protocol">` + `.is-revealed` scoped rules | `getElementById("protocol")` must find the section, and `.is-revealed[data-astro-cid-rm6zpkkp]` must match the class the script adds to that same element | **verified empirically** — the ~400ms render shows `done` at its `backwards` start frame and `.loop` not yet drawn while states 1-3 are solid. That is only reachable if the id resolved, the class landed, and the scoped selector matched. |
@@ -412,13 +432,14 @@ the light surface (6.28:1, decorative).
 
 ## 5. Findings
 
-No composition failure blocks this gate. Three observations recorded; one
-carried forward.
+No composition failure blocks this gate. One blocking finding from cycle 1
+(f-009) is **fixed**; three observations recorded; one carried forward.
 
 | ID | Severity | Category | Finding | Routing |
 |---|---|---|---|---|
+| **f-009** | **P2** | protocol | *(reviewer, cycle 1 — blocking)* The copy audit failed its declared criterion: `.metis/plans/phase-1.md:139-141` requires every rendered string to trace to `docs/copy.md`, but `index.astro:23-25` authored the title and description outside the deck, and the gate report returned PASS while calling the criterion "not literally met". | **fixed in cycle 1** — `docs/copy.md` gains a §Meta section carrying both strings verbatim; 57/57 rendered strings now trace; built output byte-identical (§7). Ready for the reviewer to close. |
 | **f-006** | **P2** | behavior | Page-level horizontal overflow below ~375px viewport width. `Install.astro:49` renders `go install github.com/techspeque/metis/cmd/metis@latest` as an unbreakable token in a plain `<p>`; the adjacent `<pre>` one-liner scrolls internally but the paragraph does not. Measured chain at 320px: `P.alternatives sw=340/cw=272 → section 340 → main 364` vs `clientWidth 320`. Clean at 375px and above. | recorded against `phase-1-gate`, routed to **phase-2 ws-2.2** (accessibility/performance pass), where Lighthouse would flag it anyway |
-| **f-007** | P3 | protocol | The `<title>` and meta description (`index.astro:23-25`) are rendered site copy that lives outside `docs/copy.md`, which ADR-0003 pins as the copy source. The deck has no §Meta section. The strings are accurate against the real CLI, so no §3.4 invariant is broken — this is an authority gap, not a content defect. Fix: add a §Meta section to `docs/copy.md`. | recorded against `phase-1-gate` |
+| **f-007** | P3 | protocol | *(self-recorded, cycle 0)* Same substance as f-009 at lower severity: the `<title>` and meta description live outside the deck ADR-0003 pins. | **fixed in cycle 1** by the same §Meta edit. Ready for the reviewer to close alongside f-009. |
 | **f-008** | P3 | doc | `tokens.css:66` documents the light hairline `#E2DBCB` on `#FAF7F0` as 1.10:1; independent recomputation gives **1.29:1**. Phase-0 artifact; decorative token, so no AA consequence. Fix: correct the table row. | recorded against `phase-1-gate` |
 | f-004 | advisory | — | Lightning CSS rewrites `@media (min-width: 768px)` to range syntax in the built CSS; unsupported before Chrome 104 / Safari 16.4 / Firefox 63, where the query is dropped and personas render single-column. Benign — the layout is mobile-first. Phase 1 added a **second** such query at 1024px (the lifecycle row), so the decision now covers two breakpoints, not one. | already routed to **ws-2.2** by its own text; restated here so it is not silently dropped |
 
@@ -440,8 +461,9 @@ complete enough to make that call either way.
 Phase 1 is validated as a composed system. The five slices compose into a
 content-complete page that builds clean with zero check errors and no
 placeholder text anywhere in the output. Copy is genuinely pinned to the deck:
-41 of 41 deck strings render verbatim, all 51 rendered body text nodes trace
-back, the hero transcript is byte-identical at 204 bytes, and — the sub-clause
+41 of 41 deck strings render verbatim, **all 57 rendered strings trace back —
+51 body text nodes and, after the cycle-1 fix, the 6 head strings too** — the
+hero transcript is byte-identical at 204 bytes, and — the sub-clause
 phase-0-gate explicitly deferred to this phase — every command the page now
 renders was executed or `--help`-checked against metis 0.0.6 and every URL
 resolved 200, so "commands shown must exist with the shown flags" is a live,
@@ -455,10 +477,63 @@ All AA pairings, including the five Phase 1 introduces, were recomputed
 independently and pass. CSS, script and font budgets are well inside threshold,
 with no fonts added since Phase 0.
 
-Three findings are recorded, none blocking: a narrow-viewport overflow routed
-to ws-2.2 (f-006), the head-copy authority gap in ADR-0003's coverage (f-007),
-and a wrong ratio in a decorative row of the tokens table (f-008). Proceed to
-Phase 2.
+The one blocking finding (f-009, with its lower-severity twin f-007) is fixed
+at source, not argued away. Two advisories remain open, neither blocking: a
+narrow-viewport overflow routed to ws-2.2 (f-006) and a wrong ratio in a
+decorative row of the tokens table (f-008). Proceed to Phase 2.
+
+---
+
+## 7. Review Cycle 1 — the block and the fix
+
+**Finding (f-009, P2/protocol, blocking):** "Phase gate copy audit fails its
+declared criterion… The gate brief itself says this criterion is 'not literally
+met' while still returning PASS. Add the title and description verbatim to a
+Meta section in docs/copy.md (or formally amend the governing requirement
+through planning), then rerun the gate evidence and review."
+
+**Response: agreed, no contest.** Cycle 0 surfaced the gap honestly in
+Scenario 2 and then returned PASS anyway. That is the defect the reviewer
+names, and it is the right block: a gate's verdict has to follow its own
+evidence, or the evidence is decoration. Of the two remedies offered, the deck
+edit is taken — amending the plan's criterion through planning would weaken a
+requirement to fit the artifact, when the artifact was one paragraph away from
+meeting it.
+
+**Change made** — the smaller of the two options the finding allows, and the
+only file added to scope:
+
+- `docs/copy.md` gains a **§Meta** section ahead of §Hero, carrying the
+  **Title** and **Description** verbatim, plus two notes in the deck's existing
+  voice: where the strings render (title → `<title>`/`og:title`/`twitter:title`;
+  description → `<meta name="description">`/`og:description`/
+  `twitter:description`), and the per-claim CLI verification behind the
+  description, so the next editor sees the check beside the copy.
+
+**Evidence re-run after the change:**
+
+| Check | Result |
+|---|---|
+| `rm -rf dist && npm run verify` | exit 0 |
+| Head strings → deck | **6/6 traceable**, 0 untraceable (was 0/6) |
+| Body nodes → deck | **51/51**, 0 untraceable (unchanged) |
+| Deck §Meta vs `index.astro:23-25` | **byte-identical** — `title == deck Title` True, `description == deck Description` True |
+| Title/description in `dist` | `<title>…</title>` verbatim; description present 3× (name, og, twitter) |
+| Built output changed? | **No** — CSS content hash still `index.BZ3ZAYrX.css`, still 14,420 bytes; all 8 `dist/` files present. `docs/` is not a build input, so the fix is provably render-neutral. |
+| Script count / landmarks re-checked post-build | 1 `<script>`; one `<main>`, one `<footer>`, one `<h1>`; footer still after `</main>` |
+
+**Not re-run, and why:** Scenarios 3-6 and §4 depend only on `src/**` and the
+built output, neither of which changed — the byte-identical `dist` above is the
+proof, so re-rendering would restate cycle 0's results rather than test
+anything. The cheap post-build structural checks in the table were re-run
+anyway as a guard against exactly that assumption being wrong.
+
+**Left open for the reviewer:** f-009 and f-007 are fixed here but not closed —
+`metis findings resolve` is the reviewer's action after independent
+verification, not the coder's. f-006 (P2, narrow-viewport overflow) and f-008
+(P3, tokens ratio row) are unchanged and still routed as recorded in §5; f-006
+in particular was left unfixed deliberately — it is a code defect in
+`Install.astro`, outside this gate's scope, and belongs to ws-2.2.
 
 ## Report
 

@@ -7,6 +7,29 @@
 > output from this repository's own ledger (accuracy discipline: this site
 > is built by the tool it describes).
 
+## Meta
+
+> Head copy, not body copy: `src/pages/index.astro` passes these to Base.astro,
+> which renders the title into `<title>` + `og:title` + `twitter:title` and the
+> description into `<meta name="description">` + `og:description` +
+> `twitter:description`. Authored in phase 0, before this deck existed; brought
+> under the deck by the phase-1 gate so ADR-0003's pinned source covers every
+> rendered string, head included, not only what lands in `<main>`.
+
+**Title:** metis — the meta-harness for AI coding agents
+
+**Description:** metis governs AI coding agents with a disciplined protocol:
+one slice at a time, file scope as a contract, and cross-vendor review — so
+scope creep, self-review, and lost context stop happening.
+
+> Each claim in the description is verified against metis v0.0.6, per the CLI
+> discipline in this deck's header: "one slice at a time" — `metis next -o json`
+> returns a single active-slice object, never a list; "file scope as a contract"
+> — `metis log <id> --validate` audits committed files against the brief's
+> `owned_paths`; "cross-vendor review" — `metis commit --flip reviewed` requires
+> `--agent`, which its own help calls "required with --flip reviewed for
+> cross-vendor validation".
+
 ## Hero
 
 **Headline:** Your agents are brilliant. Their process isn't.
