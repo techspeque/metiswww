@@ -2,7 +2,7 @@
 type: overview
 project: metiswww
 status: living
-last_updated: 2026-07-25
+last_updated: 2026-07-26
 ---
 
 # metiswww — Full Specification
@@ -114,16 +114,18 @@ reviewable — one component (or one tightly-related group) per slice.
 
 ## 4. Phases (High-Level Roadmap)
 
-### Phase 0 — Foundation
-Design token system (colors, type scale, spacing), base layout with theme
-handling and OG/meta tags, fonts, and the page skeleton with placeholder
-sections. Establishes the visual language every later slice consumes.
+### Phase 0 — Foundation — COMPLETE (2026-07-26)
+Design tokens, base layout/fonts/meta, page skeleton. Four slices, all
+reviewed and archived; gate passed on review cycle 3. Decisions recorded in
+ADR-0001; the footer-landmark trade-off is amended by ADR-0004 in Phase 1.
 
-### Phase 1 — Sections
-The real content, one component-group per slice: Hero (typed terminal
-animation + install one-liner), The Problem/Insight (from the metis README,
-condensed), Two Personas split, Protocol/lifecycle animated diagram,
-Install + links footer.
+### Phase 1 — Sections — PLANNED (.metis/plans/phase-1.md, seeded)
+The real content, one component-group per slice: Hero (typed terminal +
+install one-liner), Problem/Insight, Personas split, Protocol lifecycle
+diagram (the one permitted script, ADR-0002), Install + Footer with the
+ADR-0004 landmark amendment. All copy renders verbatim from docs/copy.md
+(ADR-0003); briefs are pre-authored in .metis/briefs/. Coder:
+claude-code/opus; reviewer: opencode/gpt-5.6-sol (genuinely cross-vendor).
 
 ### Phase 2 — Polish & Ship
 Scroll-reveal pass, reduced-motion audit, Lighthouse pass (≥95 on

@@ -293,7 +293,9 @@ Project invariants that must never be violated:
 | `metis archive` | Move done slices to archive |
 | `metis check` | Validate config + ledger |
 | `metis status` | One-line progress summary |
-| `metis log <id> --validate` | Audit slice commits: format + scope vs brief |
+| `metis log <id> --validate` | Audit slice commits: format + scope vs brief (scope N/A for gates — inspect manually) |
+| `metis findings record <id>` | Record advisory (non-blocking) observation |
+| `metis findings resolve <f-id>` | Close a finding after verifying its fix |
 | `metis config get <key>` | Read one config value |
 
 Every read command accepts `-o json`. When you need an exact value

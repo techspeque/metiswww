@@ -1,49 +1,53 @@
 # .metis/project.yaml — project configuration for Metis
 version: 1
 project:
-    name: metiswww
-    integration_branch: dev
-    release_branch: main
-    overview: OVERVIEW.md
+  name: metiswww
+  integration_branch: dev
+  release_branch: main
+  overview: OVERVIEW.md
 agents:
-    claude-code/opus:
-        surface: claude-code
-        model: opus
-        label: Claude Code (Opus) — coder
-    claude-code/sonnet:
-        surface: claude-code
-        model: sonnet
-        label: Claude Code (Sonnet) — reviewer
+  opencode/gpt-5.6-sol:
+    surface: opencode
+    model: gpt-5.6-sol
+    label: opencode (GPT-5.6-sol) — reviewer
+  claude-code/opus:
+    surface: claude-code
+    model: opus
+    label: Claude Code (Opus) — coder
+  claude-code/sonnet:
+    surface: claude-code
+    model: sonnet
+    label: Claude Code (Sonnet) — reviewer
 routing:
-    high:
-        - claude-code/opus
-    medium:
-        - claude-code/opus
-    low:
-        - claude-code/opus
-    review: cross-vendor
+  high:
+    - claude-code/opus
+  medium:
+    - claude-code/opus
+  low:
+    - claude-code/opus
+  review: cross-vendor
 accuracy_rules:
-    - Evidence-report scope claims (which files a scenario examined) must be verified against the filesystem (find/ls/grep), never assumed
+  - Evidence-report scope claims (which files a scenario examined) must be verified against the filesystem (find/ls/grep), never assumed
 commands:
-    verify: npm run verify
-    timeout_seconds: 300
+  verify: npm run verify
+  timeout_seconds: 300
 commits:
-    prefixes:
-        - feat
-        - fix
-        - refactor
-        - docs
-        - test
-        - chore
-    require_slice_id: true
-    no_attribution: true
-    format: '{prefix}({slice_id}): {message}'
+  prefixes:
+    - feat
+    - fix
+    - refactor
+    - docs
+    - test
+    - chore
+  require_slice_id: true
+  no_attribution: true
+  format: '{prefix}({slice_id}): {message}'
 paths:
-    ledger: .metis/slices.yaml
-    archive: .metis/slices-done.yaml
-    briefs: .metis/briefs/
-    plans: .metis/plans/
-    adr: .metis/adr/
-    findings: .metis/findings.yaml
-    runs: .metis/runs/
-    interfaces: .metis/interfaces.txt
+  ledger: .metis/slices.yaml
+  archive: .metis/slices-done.yaml
+  briefs: .metis/briefs/
+  plans: .metis/plans/
+  adr: .metis/adr/
+  findings: .metis/findings.yaml
+  runs: .metis/runs/
+  interfaces: .metis/interfaces.txt
