@@ -82,7 +82,62 @@ Six decisions a reviewer would otherwise have to re-derive:
 Deferred deliberately: no `data-reveal` generalization — that is
 phase-2-ws-2.1's slice under ADR-0005.
 
+Two things found while checking the build, recorded so the reviewer does not
+have to rediscover them:
+
+- **No HTML comment beside the script.** An HTML comment explaining the
+  script survives into dist, and one that named a script element literally
+  put a second `<script` in `dist/index.html` — the phase gate counts those.
+  The rationale moved into the frontmatter, which is compiled away.
+- **The loop chip is centred, and that is a placement decision.** The block
+  path leaves the flow after `reviewed` and returns to `coded`. Centring the
+  chip puts its riser exactly in the gap between those two cards in the
+  four-track layout (the centre of a four-track grid falls in that gap), and
+  on the chain's own vertical spine when stacked. In the stacked layout the
+  chip necessarily sits below `done`, because it follows the `<ol>` in
+  document order; its dashed stroke marks it as a branch off the solid main
+  flow rather than a fifth state. Moving it mid-list would either break the
+  four-state `<ol>` or duplicate the label, so this is the accepted trade.
+
 ## Test plan
 
 - npm run verify; script count/size/content greps on dist
 - Manual: scroll trigger, reduced-motion, both schemes
+
+Results (2026-07-26) — clean build (`rm -rf dist` first), live check in Chrome
+against `astro preview`:
+
+- `metis verify --post`: ALL GREEN
+- Script: `<script` appears **1** time in all of `dist/`; one script element,
+  no attributes, **177 bytes** of inline content (limit 600), contains
+  `IntersectionObserver`; 0 `src=` script refs and 0 `.js`/`.mjs` files in
+  `dist/`. Built CSS 12,779 bytes (gate limit 50KB)
+- Copy: all 7 strings from docs/copy.md §Protocol found byte-for-byte in
+  `dist/index.html` (`grep -F` per string), including `blocked → rework`; no
+  `&mdash;`/`&rarr;` entities anywhere in dist
+- Scroll trigger: at page top the section carries only `class="section"` and
+  every state and the chip already compute to `opacity: 1` — content is never
+  hidden. On scrolling in, the class becomes `section is-revealed` and the
+  states animate with `animation-delay` 0/140/280/420ms, `fill-mode:
+  backwards`, `duration: 320ms`, settling at `opacity: 1`
+- Reduced motion: every animation-bearing rule for this component sits inside
+  the single `(prefers-reduced-motion: no-preference)` media rule in the
+  built CSS (enumerated via CSSOM — nothing outside it touches opacity or
+  animation). Disabling that rule leaves all five elements at `opacity: 1`,
+  `animation-name: none`, `transform: none`, non-zero height
+- No-JS: removing `is-revealed` leaves the same complete final state
+- Layouts: stacked below 1024px (verified at a real 560px viewport) and four
+  tracks above (verified at a real 1900px viewport); connectors are
+  `::before`/`::after` on every state but the first, chevrons rotate 135°
+  stacked / 45° across. The chip's centre and the chain's centre line agree
+  to the pixel in both (280/280 and 950/950)
+- Schemes: dark rendered live. Light verified by applying tokens.css's light
+  override values to `:root` and re-reading computed styles — card
+  `#FFFFFF`/text `#0E1116` (18.91:1), chip and closing line `#5C636E` on
+  `#FAF7F0` (5.66:1), connectors `#1F6B63`. Note this exercises the
+  component's use of the tokens, not the `prefers-color-scheme` query itself,
+  which belongs to tokens.css and was reviewed in phase 0
+- Contrast: no aegean text anywhere — `#2E8C83` on the card surface `#171B22`
+  computes to 4.27:1 and would fail AA, which is why it is decorative-only
+- Raw hex in the component appears only inside the frontmatter contrast
+  comment, which is compiled away (mirrors tokens.css's ratio table)
