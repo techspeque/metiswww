@@ -26,7 +26,7 @@ landmark amendment (ws-1.4) — composed into the content-complete single page.
 
 - **owned_paths:**
   - .metis/briefs/phase-1-gate.md
-  - docs/copy.md — **added in review cycle 1**, to close f-009 (§7)
+  - docs/copy.md
 - **read_only_paths:**
   - OVERVIEW.md (§3.2, §3.4)
   - .metis/plans/phase-1.md (§Phase Gate)
