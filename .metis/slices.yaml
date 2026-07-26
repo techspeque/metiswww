@@ -9,7 +9,7 @@ slices:
       reviewer: claude-code/sonnet
       plan: .metis/plans/phase-0.md
       plan_section: Phase Gate
-      coded: false
+      coded: true
       reviewed: false
       review_cycles: 2
       created: ""
