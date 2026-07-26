@@ -54,3 +54,57 @@ short prompts while the protocol carries the context.
 - Grep dist/index.html script count (== 1 at this workstream)
 - JS-disabled and reduced-motion render checks; both schemes; heading
   outline unchanged (one h1, ordered h2s)
+
+## Presentation notes (coder, recorded before implementation)
+
+Additive to everything above — nothing in the Goal, Architectural context,
+Definition of Done or Test plan is withdrawn or replaced.
+
+1. **Three copy strings per step, not one.** Each deck step publishes an
+   attribution (`Terminal 1 — the coder:`), a quoted prompt, and a
+   parenthetical caption on one markdown line. They render as three sibling
+   elements, each holding ONE uninterrupted text node, split only at the
+   deck's own bold/quote/italic boundaries. A single text node is not
+   available: the DoD requires the prompt to be visually distinct from the
+   caption, which needs separate elements. This is consistent with how the
+   deck treats every other separately-rendered string (§Personas publishes
+   column heading and body as distinct fields; §Proof publishes stat value
+   and label as distinct fields).
+2. **The quote marks render.** They are literal characters in the deck and
+   they are the "quoted treatment" the Architectural context asks for. Copy
+   characters are never generated from CSS on this site (Problem.astro's
+   em-dash rule).
+3. **No `$` anywhere in the section.** The plan's "prompt glyph" is honored
+   as terminal *chrome*: a decorative caret block in each card's title bar,
+   beside the attribution — never in front of the human words, which is what
+   would make a prompt read as a shell command.
+4. **Layout is a staircase, not a grid.** From 768px, odd steps sit in the
+   left column and even steps in the right, one step per row, so the
+   1↔2 alternation reads as the ping-pong loop. Below 768px it is one column
+   in document order. `<ol>` carries the order (role="list" per f-005), so
+   the connectors-free layout loses nothing with CSS off.
+5. **Two typographic registers.** Title bar and caption are mono (terminal
+   chrome and machine narration); the prompt is the display face, one step
+   larger and full-strength. No transcript, no command line, no output block
+   is rendered anywhere in the section.
+6. **Caret colour alternates** gold (coder) / aegean (reviewer). Purely
+   decorative and redundant with the attribution text, which names the
+   terminal; aegean is tokens.css's diagram accent and this staircase is a
+   diagram of the loop.
+7. **CLI claims re-verified independently** against metis 0.0.6 in this
+   session rather than inherited from the deck's note: `metis kickoff` prints
+   the session protocol; `metis next -o json` returns one active-slice object
+   (deterministic dispatch, never a list); `metis commit --help` shows
+   `--brief`, `--flip coded|reviewed` and `--agent` "required with --flip
+   reviewed for cross-vendor validation"; kickoff step 5 documents `metis
+   verify`'s distinct exit codes (0 / 1 / 2); scope auditing and findings are
+   `metis log <id> --validate`, `metis block`, `metis findings record`.
+8. **No script, no local animation.** The component declares only
+   `--reveal-delay` values, consumed by index.astro's ADR-0005 rule, so
+   reduced-motion and no-JS completeness is structural rather than asserted.
+
+## Out-of-scope touches
+
+None. index.astro's frontmatter comment counts ("five content sections",
+"four opted-in sections") are corrected inside that owned file, per hard
+rule 9 — reality beats documents.
