@@ -64,11 +64,11 @@ jobs:
 
       # Kept although `base` is hardcoded in astro.config.mjs per ADR-0006 and
       # nothing here reads this step's outputs: it is the step GitHub's own
-      # static-site starter workflow uses, and it fails fast with an
-      # actionable message if Pages has not been switched to "GitHub Actions"
-      # yet — better than deploy-pages failing three steps later. Left at
-      # `enablement: false` (the default): a deploy workflow should not
-      # silently reconfigure the repository's settings.
+      # static-site starter workflow uses, and per its documentation it reads
+      # the repository's Pages configuration — so if Pages has not been
+      # switched to "GitHub Actions" it is the step expected to say so, ahead
+      # of deploy-pages. Left at `enablement: false` (the default): a deploy
+      # workflow should not silently reconfigure repository settings.
       - name: Configure Pages
         uses: actions/configure-pages@v6
 

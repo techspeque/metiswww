@@ -113,7 +113,7 @@
  * Budget: ≤ 768 bytes in dist (ADR-0007 gate), measured the way the phase-1
  * gate measured the observer — inner text and whole element both reported.
  */
-import { SITE, THEME_COLOR } from "../consts";
+import { SITE, THEME_COLOR, withBase } from "../consts";
 
 // Import order is load order: tokens define the fallback font stacks, fonts
 // enriches them with the real faces, global consumes the resulting tokens.
@@ -129,19 +129,6 @@ interface Props {
 }
 
 const { title, description } = Astro.props;
-
-/**
- * Join a path in public/ onto the configured base path (phase-2-ws-2.3,
- * ADR-0006). Astro rebases root-absolute `url()` in CSS during the build but
- * passes template attribute values through verbatim, so every hand-written
- * asset href in this file goes through here.
- *
- * `BASE_URL` is "/metiswww" for the current config and "/" with no base, but
- * Astro normalizes it against `trailingSlash` — so the join trims and
- * re-adds exactly one slash rather than assuming either form.
- */
-const asset = (path: string) =>
-  `${import.meta.env.BASE_URL.replace(/\/$/, "")}/${path.replace(/^\//, "")}`;
 
 // Resolve the page path against SITE.url rather than concatenating onto it.
 // `Astro.url.pathname` already carries the base ("/metiswww/"), so resolution
@@ -204,24 +191,24 @@ const canonical = pageUrl.href;
       content={THEME_COLOR.light}
     />
 
-    <!-- Favicons (base-path aware — see asset() above) -->
-    <link rel="icon" type="image/svg+xml" href={asset("favicon.svg")} />
-    <link rel="icon" href={asset("favicon.ico")} sizes="any" />
+    <!-- Favicons — base-path aware via withBase() (src/consts.ts, ADR-0006) -->
+    <link rel="icon" type="image/svg+xml" href={withBase("favicon.svg")} />
+    <link rel="icon" href={withBase("favicon.ico")} sizes="any" />
 
     <!-- Preload self-hosted variable fonts (same-origin; crossorigin required
          for font fetches even when same-origin). These must match the URLs
          fonts.css requests or the preload is wasted — the build rebases the
-         stylesheet's url(), asset() rebases these. -->
+         stylesheet's url(), withBase() rebases these. -->
     <link
       rel="preload"
-      href={asset("fonts/space-grotesk-variable.woff2")}
+      href={withBase("fonts/space-grotesk-variable.woff2")}
       as="font"
       type="font/woff2"
       crossorigin
     />
     <link
       rel="preload"
-      href={asset("fonts/jetbrains-mono-variable.woff2")}
+      href={withBase("fonts/jetbrains-mono-variable.woff2")}
       as="font"
       type="font/woff2"
       crossorigin

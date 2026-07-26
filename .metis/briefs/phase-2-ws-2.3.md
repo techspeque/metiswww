@@ -118,12 +118,20 @@ Verbatim from ADR-0006: `site: "https://techspeque.github.io"`,
 both stay at their defaults, because changing either would move every URL
 on the site in a slice whose job is to stop URLs from moving.
 
-### 2. `src/layouts/Base.astro` — the four hand-written asset links
+### 2. `src/consts.ts` — `withBase()`, and the four hand-written asset links
 
-A local `asset()` helper joins `BASE_URL` to a path with exactly one slash
-between them, so it is correct whether or not `BASE_URL` ends in one, and
-correct when base is `/` (the dev-server and no-base case). Four call
-sites: two favicons, two font preloads. No other href in the built HTML is
+`withBase(path)` joins `import.meta.env.BASE_URL` to a path with exactly
+one slash between them, so it holds whether or not `BASE_URL` carries a
+trailing slash, and when base is `/` (the dev-server and no-base case).
+`withBase("")` yields the site root.
+
+It lives in `src/consts.ts` rather than in `Base.astro` because two files
+need it — the layout's asset links and the 404's CTA — and Astro frontmatter
+cannot export. One join rule in one place; a second copy would be a second
+thing to keep correct.
+
+Five call sites: two favicons and two font preloads in `Base.astro`, the
+home link in `404.astro`. No other href in either built document is
 internal — every remaining one is an external `https://` link to
 github.com, which base cannot affect.
 
@@ -131,8 +139,11 @@ github.com, which base cannot affect.
 
 ```
 - const pageUrl = new URL(SITE.url + Astro.url.pathname);
-+ const canonical = new URL(Astro.url.pathname, SITE.url).href;
++ const pageUrl = new URL(Astro.url.pathname, SITE.url);
 ```
+
+The line below it — `const canonical = pageUrl.href;`, and the paragraph of
+phase-2-ws-2.2 rationale attached to it — is unchanged.
 
 `SITE.url` is used as the URL **base** rather than concatenated onto —
 which is precisely what the old comment at 133-135 argued against, because
@@ -155,7 +166,7 @@ deviation this slice has no reason to argue for.
 
 `SITE.url` is now a documented duplicate of `site` + `base` in
 astro.config.mjs, in the same spirit as `THEME_COLOR` mirroring tokens.css
-directly below it. The comment says so, names the two config keys, and
+further down the file. The comment says so, names the two config keys, and
 records that only the origin reaches the output. Value unchanged.
 
 ### 5. `src/pages/404.astro` — new
@@ -176,8 +187,14 @@ Both props therefore reuse §NotFound's own published strings verbatim —
 **The CTA href.** "← Back to metis" is the only internal link on the site
 and the deck gives it no URL (unlike §Hero, which spells its URLs out).
 §NotFound's own Body — "returning to the last known good state" — points it
-at the site home, and it is written through `asset()`, because a bare
+at the site home, and it is written through `withBase("")`, because a bare
 `href="/"` is exactly what this slice's acceptance grep exists to catch.
+
+**Sizes.** No hardcoded measure: global.css:85-87 already caps every `<p>`
+at `--measure`, so the body copy sets none of its own, and the h1 inherits
+its size from global.css. The only values this page's stylesheet carries
+are `--space-*`, `--text-sm`, `--container-max` and `--color-muted` — token
+discipline per OVERVIEW §6, the rule f-003 was raised under.
 
 **Canonical on a 404.** The page inherits Base's canonical, which resolves
 to `…/metiswww/404`. GitHub Pages serves this document at arbitrary missing
@@ -210,6 +227,12 @@ fails before anything is uploaded. Adding a separate `npm run build` would
 rebuild what verify just built; splitting into `check` + `build` would mean
 the workflow no longer runs the command the ADR names. Neither trade is
 worth taking.
+
+`npm ci` rather than `npm install`, so the deploy can never resolve a
+dependency the verified build did not use. `package-lock.json` is committed
+(`git ls-files package-lock.json`, 186 KB) — checked explicitly, because
+both `npm ci` and `setup-node`'s `cache: npm` fail outright without it, and
+that failure is invisible from `dev`: the workflow runs only on `main`.
 
 Action versions are the current majors, each confirmed to exist as a moving
 tag via `gh api repos/<action>/git/ref/tags/<major>` on 2026-07-26:
@@ -397,8 +420,9 @@ be the human's dev → main merge.
 
 **The runtime prerequisite, again, because it is the difference between
 "coded" and "shipped":** Settings → Pages → Build and deployment → Source
-must be "GitHub Actions". Until it is, the Configure Pages step fails with
-"Get Pages site failed".
+must be "GitHub Actions". Until it is, the run will fail — which step
+reports it, and with what message, is not something this slice can observe
+from `dev`, so no specific failure text is claimed here.
 
 ### Verify
 
@@ -411,7 +435,14 @@ the five declared owned_paths and nothing else.
 | File | Change |
 |---|---|
 | `astro.config.mjs` | site + base (ADR-0006), with the measured consequences documented |
-| `src/layouts/Base.astro` | `asset()` helper; four asset links rebased; canonical resolves instead of concatenating |
-| `src/consts.ts` | SITE.url re-documented as the site+base mirror; value unchanged |
+| `src/consts.ts` | new `withBase()` join; SITE.url re-documented as the site+base mirror, value unchanged |
+| `src/layouts/Base.astro` | four asset links rebased through `withBase()`; canonical resolves instead of concatenating |
 | `src/pages/404.astro` | new |
 | `.github/workflows/deploy.yml` | new |
+
+Everything in this section was re-run after the review-cycle-0 refactor
+that moved the join helper into `src/consts.ts` and dropped the 404's
+hardcoded `max-width`: clean rebuild green, acceptance grep still empty,
+all seven asset URLs still 200 under the preview prefix, all five §NotFound
+strings still verbatim, and Lighthouse mobile still 100/100/100/100 on both
+pages.

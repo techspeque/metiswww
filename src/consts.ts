@@ -27,6 +27,23 @@ export const SITE = {
 } as const;
 
 /**
+ * Join a path in public/ onto the configured base path (phase-2-ws-2.3,
+ * ADR-0006). Astro rebases root-absolute `url()` in CSS during the build but
+ * passes template attribute values through verbatim, so every hand-written
+ * internal href on the site goes through here.
+ *
+ * `import.meta.env.BASE_URL` is "/metiswww" for the current config and "/"
+ * with no base, but Astro normalizes it against `trailingSlash` — so this
+ * trims and re-adds exactly one slash rather than assuming either form.
+ * Passing "" yields the site root, which is what the 404 page's CTA wants.
+ *
+ * It lives here rather than in a layout because two files need it and Astro
+ * frontmatter cannot export: a second copy is a second thing to keep correct.
+ */
+export const withBase = (path: string) =>
+  `${import.meta.env.BASE_URL.replace(/\/$/, "")}/${path.replace(/^\//, "")}`;
+
+/**
  * `theme-color` values for the mobile browser UI, one per color scheme.
  * These two hex literals intentionally MIRROR `--ink` / `--parchment` in
  * src/styles/tokens.css; <meta> content cannot reference a CSS var(), so the

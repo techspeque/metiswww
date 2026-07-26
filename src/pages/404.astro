@@ -35,9 +35,9 @@
  * "← Back to metis" is the only internal link on the site, and the deck
  * gives it no URL — unlike §Hero, which spells its URLs out. §NotFound's own
  * Body ("returning to the last known good state") points it at the site
- * home. It is built through the same base-path join Base.astro uses for its
- * assets; a bare href="/" would leave the site under a project base path,
- * which is exactly the class of defect ADR-0006 exists to prevent.
+ * home. It is built through withBase() — the same join Base.astro uses for
+ * its asset hrefs; a bare href="/" would leave the site under a project base
+ * path, which is exactly the class of defect ADR-0006 exists to prevent.
  *
  * --- No reveal -----------------------------------------------------------
  *
@@ -49,10 +49,11 @@
  * theme script (inherited from Base) and the observer (index only).
  */
 import Base from "../layouts/Base.astro";
+import { withBase } from "../consts";
 
-// Same join as Base.astro's asset(): trims and re-adds exactly one slash, so
-// it holds whether or not BASE_URL carries a trailing slash.
-const home = `${import.meta.env.BASE_URL.replace(/\/$/, "")}/`;
+// The site root under the configured base path. Same helper Base.astro uses
+// for its asset hrefs — one join rule, one place to keep correct.
+const home = withBase("");
 
 // docs/copy.md §NotFound — reused as head copy, see the frontmatter note.
 const heading = "404 — no active slice here.";
@@ -96,10 +97,10 @@ No active slices. The backlog is empty.</code></pre>
     padding-block: var(--space-8);
   }
 
-  /* The body copy sets the measure; the h1 inherits its size from global.css
-     and needs no override. */
+  /* No max-width: global.css already caps every <p> at --measure, and the h1
+     inherits its size from global.css too. Only the rhythm and the muted
+     colour are this page's to set. */
   .body {
-    max-width: 42ch;
     margin-block-start: var(--space-4);
     color: var(--color-muted);
   }
