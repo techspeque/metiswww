@@ -10,7 +10,7 @@ slices:
       reviewer: opencode/gpt-5.6-sol
       plan: .metis/plans/phase-1.md
       plan_section: §1.2
-      coded: false
+      coded: true
       reviewed: false
       review_cycles: 0
       created: ""
