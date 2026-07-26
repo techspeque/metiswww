@@ -34,4 +34,5 @@ findings:
       severity: P2
       category: behavior
       finding: 'Protocol.astro:68,75,183-213 does not convey the required blocked/rework return loop: the label sits after done in semantic/CSS-disabled order, while the rendered dashed riser has no direction and connects only to the gap between coded and reviewed rather than leaving reviewed and returning to coded. Additionally, the order-carrying <ol> at lines 68-73 uses list-style:none without role="list", so WebKit/VoiceOver can drop the list semantics the accessibility rationale relies on.'
-      status: open
+      status: resolved
+      resolved_by: 'Verified in a832522: Protocol.astro:97 preserves list semantics; Protocol.astro:100 nests the block branch under reviewed; Protocol.astro:194-221 and 290-305 draw a directed return path into coded in stacked and row layouts. Independent metis verify --post and scope audit pass.'
