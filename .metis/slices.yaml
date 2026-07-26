@@ -11,7 +11,7 @@ slices:
       plan: .metis/plans/phase-1.md
       plan_section: §1.1
       coded: true
-      reviewed: false
+      reviewed: true
       review_cycles: 0
       created: ""
     - id: phase-1-ws-1.2
