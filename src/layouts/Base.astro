@@ -134,13 +134,20 @@ const { title, description } = Astro.props;
 // project path segment in SITE.url is preserved instead of being replaced by
 // the absolute pathname.
 const pageUrl = new URL(SITE.url + Astro.url.pathname);
-// og:url must be absolute (Open Graph spec).
+// Absolute, and used for BOTH og:url and rel="canonical" (phase-2-ws-2.2).
+// og:url has always required it (Open Graph spec). The canonical link was
+// root-relative until this slice — valid HTML that resolves to the same URL,
+// chosen in phase-0-ws-0.2 to keep the built HTML free of any
+// <link href="http…">, which the phase-0 gate greps for. Lighthouse scores a
+// relative canonical as no canonical at all ("Is not an absolute URL"), the
+// one thing standing between this page and SEO 100, and Google's
+// canonicalization rules agree. The gate criterion behind that grep is about
+// external *resources* — "no external origins for scripts, stylesheets, or
+// fonts", "no request to any external origin on page load" — and a canonical
+// link fetches nothing, exactly like the og:url <meta> that already carries
+// this same absolute URL. So the grep gains one permitted hit and the
+// invariant it stands for is untouched; the brief records the refinement.
 const canonical = pageUrl.href;
-// The rel="canonical" link is emitted root-relative: it resolves against the
-// document URL to the same absolute URL, keeps the built HTML free of any
-// external-origin <link href="http…"> (a resource-origin acceptance gate), and
-// stays correct without hardcoding the origin.
-const canonicalPath = pageUrl.pathname;
 ---
 
 <!doctype html>
@@ -156,7 +163,7 @@ const canonicalPath = pageUrl.pathname;
 
     <title>{title}</title>
     <meta name="description" content={description} />
-    <link rel="canonical" href={canonicalPath} />
+    <link rel="canonical" href={canonical} />
 
     <!-- Open Graph -->
     <meta property="og:title" content={title} />

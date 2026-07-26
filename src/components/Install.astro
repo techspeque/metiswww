@@ -85,6 +85,26 @@
     color: var(--color-muted);
   }
 
+  /* f-006 (phase-2-ws-2.2). This paragraph carries `go install
+     github.com/techspeque/metis/cmd/metis@latest` as prose, and the module
+     path is one unbreakable word ~316px wide: below 375px it could not fit
+     the content column, so it pushed the whole document to a 364px
+     scrollWidth and the page scrolled sideways. The <pre> above absorbs the
+     same problem with its own overflow-x, but a paragraph has nowhere to put
+     the excess.
+
+     `break-word` rather than `word-break: break-all` or `overflow-wrap:
+     anywhere`: it breaks a word only when that word cannot fit on a line of
+     its own, so from 375px up the token still renders whole and the section
+     looks exactly as it did — and unlike `anywhere` it leaves the
+     paragraph's min-content contribution alone. The alternative the finding
+     floated, giving the token the <pre>/<code> treatment, was declined: the
+     deck publishes this line as prose, and CSS wrapping changes no byte of
+     the string ADR-0003 requires be rendered verbatim. */
+  .alternatives {
+    overflow-wrap: break-word;
+  }
+
   /* The verification line is the section's payoff — the one instruction the
      reader leaves with — so it carries full-strength text (17.68:1 in both
      schemes) and a wider gap above it than the alternatives line. */

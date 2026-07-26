@@ -90,9 +90,10 @@ That is the whole SEO gap: `canonical` carries weight 1 of the SEO
 category's 11, i.e. 91/100. Nothing else in any category scored below 1
 except the two unweighted *insight* audits (`render-blocking-insight`,
 `network-dependency-tree-insight`), which contribute 0 to the score and
-whose subject is the single 14 KB render-blocking stylesheet — the site
-has exactly one, and inlining it to chase an unweighted insight would
-trade the authored-CSS architecture for nothing. Not done.
+whose subject is the site's single render-blocking stylesheet (21 KB on
+disk, 4.3 KB over the wire, `wastedMs: 151`) — inlining it to chase an
+unweighted insight would trade the authored-CSS architecture for nothing.
+Not done.
 
 Baseline width sweep (the f-006 reproduction), both schemes, at
 300/320/340/360/375/390/412/767/768/1023/1024/1440:
@@ -203,6 +204,139 @@ are **not** this slice's to fix: f-008 (a wrong ratio in `tokens.css`'s
 documentation comment — `read_only` here) and f-013 (a copy-deck line in
 `docs/copy.md` — ADR-0003 makes the deck the only place it may change).
 
-## Results (after the changes)
+## Final measurement (after the changes)
 
-_Filled in after implementation — see "Final measurement" below._
+Same environment as the baseline: **Lighthouse 13.4.1**, Chrome headless
+(`--headless=new --no-sandbox`), served by `npm run preview -- --port 4321`
+over a clean `npm run build`, default simulated throttling. Command, in
+full, for both form factors:
+
+```
+lighthouse http://localhost:4321/ [--preset=desktop] \
+  --chrome-flags="--headless=new --no-sandbox" \
+  --output=json --output-path=<file>
+```
+
+**Three consecutive runs per form factor** (local perf scores are noisy;
+one sample is not evidence):
+
+| Run | perf | a11y | best-practices | SEO |
+|---|---|---|---|---|
+| mobile ×3 | 100, 100, 100 | 100, 100, 100 | 100, 100, 100 | 100, 100, 100 |
+| desktop ×3 | 100, 100, 100 | 100, 100, 100 | 100, 100, 100 | 100, 100, 100 |
+
+**All four categories 100/100 on every run — DoD ≥95 met with 5 points of
+margin.** The only scored audit still below 1 anywhere is
+`network-dependency-tree-insight` at weight 0 (see the baseline note).
+
+### Both schemes, measured rather than asserted
+
+The LH CLI has no `prefers-color-scheme` switch, so the light scheme was
+audited by serving the built page with `data-theme="light"` on `<html>` —
+the site's own sanctioned override (ADR-0007), which selects the
+`:root[data-theme="light"]` token block at higher specificity than the
+media query. **Verified, not inferred:** the run's own
+`full-page-screenshot` renders parchment-on-ink-inverted, i.e. the light
+scheme really was in effect. Same server, same flags; `dist/index.html`
+was restored by rebuild afterwards and `diff` confirms it is byte-identical
+to the committed build.
+
+| Light-scheme run | perf | a11y | best-practices | SEO |
+|---|---|---|---|---|
+| mobile ×3 | 100, 100, 100 | 100, **96**, 100 | 100, 100, 100 | 100, 100, 100 |
+| desktop ×3 | 100, 100, 100 | 100, 100, **96** | 100, 100, 100 | 100, 100, 100 |
+
+### The intermittent light-scheme `color-contrast` result — investigated, not papered over
+
+Two of six light runs (once mobile, once desktop; never in twelve dark
+runs) scored a11y **96** on one `color-contrast` item. It is a
+mid-animation sample, and here is why that is the finding rather than an
+excuse:
+
+- The flagged node is always the same one: `span.line.out.prompt`, the
+  closing `$ █` line of the hero transcript — the **last** element in the
+  typing choreography, `emit` starting at 2405 ms and settling at 2625 ms
+  (Hero.astro). It is the one piece of text still fading when axe runs.
+- The reported foreground differs run to run — `#9b7234`, then `#9b7133` —
+  and neither is a token. Both are `--color-accent` **blended** toward the
+  surface at partial opacity. A settled failure would report the same
+  colour every time.
+- The settled value is AA. Measured on the rendered page after the
+  animation completes, not read off the comment: computed colour
+  `rgb(138, 90, 18)` on surface `rgb(255, 255, 255)` = **5.91:1** light,
+  and `rgb(212, 162, 78)` on `rgb(23, 27, 34)` = **7.46:1** dark. Both
+  clear the 4.5:1 AA threshold for small text.
+- Under `prefers-reduced-motion: reduce` the animation does not run at
+  all, so the state cannot occur (verified below).
+
+Deliberately **not** fixed: the only way to remove it is to change motion
+OVERVIEW §3.2 specifies and phase-1-ws-1.1 delivered and had reviewed —
+paying design for a scanner timing artifact whose settled state already
+passes. Recorded here so the reviewer who sees a 96 knows exactly what it
+is, and so the phase-2 gate's own LH re-run is not surprised by it. The
+worst observed score is 96, above the ≥95 bar; the reviewer may reasonably
+disagree and route it to a finding.
+
+### f-006 — fixed and re-measured
+
+Same width-controlled-iframe method as the finding (headless Chrome floors
+a real window at 500px, so a real window cannot test this), extended down
+to 280px and run in **both** schemes:
+
+| Widths | before | after |
+|---|---|---|
+| 280, 300, 320, 340, 360 | `scrollWidth` pinned at **364** vs smaller `clientWidth` → page scrolls sideways | `scrollWidth == clientWidth` at every width |
+| 375, 390, 412, 767, 768, 1023, 1024, 1440 | clean | clean |
+
+26 measurements (13 widths × 2 schemes), zero page-level horizontal
+overflow. A per-element sweep of `main` for boxes that overflow without
+being scrollable returns exactly one hit below 1024px, `P.loop`
+(sw=151, cw=30) — inspected and **by design**: it is the Protocol
+diagram's decorative rail, whose `.loop-label` chip is absolutely
+positioned with `width: max-content` and deliberately rides outside the
+32px rail box. It contributes nothing to document scroll width, which is
+what the first table measures.
+
+### Regression suite (phase-1 gate + ADR-0005/0007 greps)
+
+| Check | Result |
+|---|---|
+| `grep -c '<script' dist/index.html` | **2** — the ADR-0007 two-script form |
+| No `src` on either script | pass (`<script>` ×2, no attributes) |
+| Theme script ≤ 768 B, in `<head>`, before the stylesheet link | **719 B** inner / 736 B whole; in head; index 3049 stylesheet link follows it |
+| Observer script ≤ 1024 B, contains `IntersectionObserver` | **242 B** inner / 259 B whole; after content |
+| Raw hex in `.astro` | none in any declaration (the two `grep` hits, Hero.astro:238 and :406, are comment prose citing the tokens table — pre-existing, untouched) |
+| Landmarks | 1 `<main>`, 1 `<footer>`, 3 `role="list"` — unchanged (ADR-0004 shape) |
+| Built CSS ≤ 50 KB | **21,070 B** on disk, 4,274 B transferred |
+| Total transfer excl. fonts < 150 KB | **10.8 KB** (74.1 KB including both fonts) |
+| External-origin *resource* refs | none — refined grep (canonical excluded) returns no output |
+| `npm run verify` | exit 0, green |
+
+### Reduced motion and no-JS
+
+- **`prefers-reduced-motion: reduce`** (Chrome
+  `--force-prefers-reduced-motion=reduce`, confirmed live by
+  `matchMedia(...).matches === true`): `document.getAnimations().length`
+  = **0** against 12 with motion allowed; `.cmd` has `animation: none`,
+  `overflow: visible` and its full 157px width; every `.out` line and
+  every `.reveal` computes `opacity: 1`. Complete content, no motion.
+- **No JS** (built page served with both `<script>` elements stripped —
+  equivalent to a browser that never runs them, since the site is static
+  with no hydration): rendered screenshot shows the full page, and the
+  theme toggle is correctly absent. In the built HTML the button still
+  carries `hidden`, and `is-revealed` appears nowhere — the two things
+  that make the no-JS state safe. All five spot-checked copy strings
+  (`Two minutes to a governed project.`, `Your agents are brilliant.`,
+  `blocked → rework`, the `go install` line, `Go for dev of the next
+  slice.`) are present.
+
+### Files changed
+
+- `src/layouts/Base.astro` — canonical absolute (+ rationale comment)
+- `src/components/Install.astro` — `overflow-wrap: break-word` on
+  `.alternatives` (+ rationale comment); f-006
+- `public/robots.txt` — new
+- `.metis/briefs/phase-2-ws-2.2.md` — this record
+
+No file outside `owned_paths` was modified. `dist/` is gitignored and was
+only rebuilt.

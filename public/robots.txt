@@ -1,0 +1,11 @@
+# metiswww — allow everything. There is nothing here that should not be
+# indexed: one static page, no user data, no admin surface, no search-trap
+# parameter space (OVERVIEW.md §2, §5).
+#
+# Scope note: on a GitHub Pages *project* site this file is served at
+# /metiswww/robots.txt, while crawlers read /robots.txt at the origin root —
+# a path this repository does not own. It is therefore inert until the custom
+# domain lands (OVERVIEW.md §8), at which point it starts applying unchanged.
+
+User-agent: *
+Allow: /
