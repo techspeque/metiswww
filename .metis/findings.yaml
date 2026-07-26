@@ -114,3 +114,10 @@ findings:
       category: behavior
       finding: 'The workflow is not main-only: .github/workflows/deploy.yml:25 enables workflow_dispatch without a github.ref guard, so selecting dev runs both build and deploy (lines 41-90). Merely naming the github-pages environment does not impose a branch restriction in this workflow. This violates the plan acceptance criterion that deploy.yml triggers only on main and the ADR requirement that dev never deploys. Remove workflow_dispatch or explicitly gate deployment to refs/heads/main.'
       status: open
+    - id: f-016
+      date: "2026-07-26"
+      slice: phase-2-ws-2.3
+      severity: P3
+      category: maint
+      finding: .metis/briefs/phase-2-ws-2.3.md:453-455 says the workflow cannot be executed from dev and triggers on main only. workflow_dispatch can still create a dev-ref workflow run; the two job guards correctly skip all work and prevent deployment. This does not affect behavior or acceptance, but future documentation should say that no jobs execute and dev cannot deploy rather than that no dev trigger occurs.
+      status: advisory
