@@ -7,14 +7,19 @@
 ## Goal
 
 Render the docs/copy.md §Proof stats strip in the hero — three
-ledger-measured numbers plus the dated audit-trail caption — under the
-ADR-0008 accuracy regime.
+ledger-measured numbers plus the labeled token-spend estimate and the
+dated audit-trail caption — under the ADR-0008 accuracy regime. Also
+render the §Hero vendor line (agent-agnostic, zero lock-in) beneath the
+subline.
 
 ## Architectural context
 
-- Copy renders verbatim from docs/copy.md §Proof (ADR-0003); the numbers
-  are static strings with an as-of date — nothing is fetched (OVERVIEW
-  §2.2)
+- Copy renders verbatim from docs/copy.md §Proof and the §Hero vendor
+  line (ADR-0003); the numbers are static strings with an as-of date —
+  nothing is fetched (OVERVIEW §2.2)
+- Stat 4 (`−55%`) is a labeled estimate: its `est.` prefix and "at best
+  observed" qualifier are part of the copy and must render — dropping
+  either is a P2 finding (ADR-0008)
 - Placement: beneath the terminal caption in Hero.astro; the hero renders
   immediately (no data-reveal on the first viewport, per §2.1), so the
   strip must not introduce reveal wiring
@@ -35,16 +40,21 @@ ADR-0008 accuracy regime.
 
 ## Definition of Done
 
-- Three stats + kicker + caption render verbatim from §Proof; caption
-  links to https://github.com/techspeque/metiswww
-- Reviewer's recomputation of all three numbers matches
+- Four stats + kicker + caption render verbatim from §Proof; caption
+  links to https://github.com/techspeque/metiswww; vendor line renders
+  verbatim beneath the subline
+- Reviewer's recomputation of the three measured numbers matches; the
+  estimate's label and qualifier are intact
 - No new script tags; token discipline; AA contrast both schemes
 - npm run verify green
 
 ## Test plan
 
-- Build and inspect dist: strip present, copy byte-identical to the deck
-- Recompute stats per §Proof verification notes (slices-done count,
-  findings count, scope-audit state)
+- Build and inspect dist: strip + vendor line present, copy byte-identical
+  to the deck
+- Recompute measured stats per §Proof verification notes (slices-done
+  count, findings count, scope-audit state); confirm `est.` renders on
+  stat 4; re-verify the vendor line's surface claims against
+  `metis surface generate` docs/output
 - Both schemes spot-checked; narrow-viewport check at 320/360/375px
   (documentElement scrollWidth == clientWidth)

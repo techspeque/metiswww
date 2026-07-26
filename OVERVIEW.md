@@ -17,7 +17,10 @@ last_updated: 2026-07-26
 metiswww is the public face of metis, the meta-harness that orchestrates AI
 coding agents. Its job: make a developer understand *what metis is* and *why
 it exists* within 30 seconds, get them to a working install within 2 minutes,
-and route them to deeper documentation without duplicating it.
+and route them to deeper documentation without duplicating it. Two claims
+must land in that first screen: metis is **vendor-neutral** (Claude Code,
+opencode, Codex, or any surface that reads AGENTS.md — no lock-in) and it
+**demonstrably works** (the ledger-derived proof strip).
 
 Secondary purpose: this site is metis's first real dogfooded project — every
 slice of it is planned, coded, and reviewed by agents under the metis
@@ -97,7 +100,13 @@ reviewable — one component (or one tightly-related group) per slice.
   measured from this repository's own ledger (slices reviewed, findings
   caught, scope audits). Every number is ledger-derived and recomputable
   per ADR-0008 — no invented percentages; anything not measured is visibly
-  labeled an estimate.
+  labeled an estimate (the token-spend figure is one: `est.`, best
+  observed, basis recorded in docs/copy.md §Proof).
+- **Vendor neutrality is a headline claim.** The hero states it outright
+  (copy: §Hero vendor line) and the site demonstrates it: this repo's own
+  ledger pairs an Anthropic coder with an OpenAI reviewer, and the
+  workflow section shows the two-terminal, two-vendor loop. Never imply a
+  preferred vendor.
 - **Manual scheme toggle.** Both schemes remain fully styled and
   `prefers-color-scheme` stays the default. A small top-of-page toggle
   (ADR-0007) lets the visitor override the OS preference, persisted in one

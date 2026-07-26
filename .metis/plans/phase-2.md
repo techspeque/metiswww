@@ -79,15 +79,19 @@ Acceptance criteria:
 
 Tasks:
 - Render the docs/copy.md §Proof strip in Hero.astro, beneath the terminal
-  caption: three stats + the audit-trail caption, verbatim
+  caption: four stats (three ledger-measured + the labeled token-spend
+  estimate) + the audit-trail caption, verbatim
+- Render the §Hero vendor line beneath the subline: agent-agnostic,
+  Claude Code / opencode / Codex / any AGENTS.md surface, zero lock-in
 - Semantic markup (a list or `dl`, not bare `div`s); numbers styled display,
-  labels styled muted; tokens only; mobile-first (stacks below ~640px)
+  labels styled muted; tokens only; mobile-first (stacks below ~640px,
+  2×2 where space allows)
 - No new JS, no new reveal wiring beyond what the hero already has (the
   hero renders immediately per §2.1 — the strip must too)
 
 Acceptance criteria:
-- [ ] Strip renders the three §Proof stats and the caption verbatim from docs/copy.md, caption links to the metiswww repo
-- [ ] Reviewer recomputes every number via the §Proof verification notes and they match (ADR-0008 — a mismatch is a P2 finding)
+- [ ] Strip renders the four §Proof stats and the caption verbatim from docs/copy.md, caption links to the metiswww repo; vendor line renders verbatim beneath the subline
+- [ ] Reviewer recomputes the three measured numbers via the §Proof verification notes and they match (ADR-0008 — a mismatch is a P2 finding); the fourth renders its `est.` label and "at best observed" qualifier intact
 - [ ] No new script tags; token discipline holds (no raw values); AA contrast in both schemes
 - [ ] npm run verify exits 0
 
@@ -226,10 +230,12 @@ Composition scenarios to validate:
       the filesystem (now includes 404.astro, Workflow.astro, the proof
       strip, and the toggle labels); every CLI claim verified against
       installed metis; terminal transcripts byte-checked
-- [ ] Proof-strip audit (ADR-0008): every rendered number independently
+- [ ] Proof-strip audit (ADR-0008): every measured number independently
       recomputed via the docs/copy.md §Proof verification notes; the
+      token-spend figure carries its `est.` label and stated basis; the
       as-of date still labels the strip; no unlabeled estimates anywhere
-      on the page
+      on the page; the vendor line's surface claims re-verified against
+      `metis surface generate` output
 - [ ] Script policy (ADR-0007 supersedes the one-script grep): exactly two
       inline scripts — theme (head, before stylesheets, ≤ 768 bytes) and
       observer (contains "IntersectionObserver", ≤ 1024 bytes); no others

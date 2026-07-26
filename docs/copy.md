@@ -38,6 +38,18 @@ scope creep, self-review, and lost context stop happening.
 dispatch, scope as a contract, and cross-vendor review, enforced by exit
 codes instead of hope.
 
+**Vendor line (small, beneath the subline — added by Amendment A, rendered
+by slice phase-2-ws-2.4):** Agent-agnostic by design — Claude Code,
+opencode, Codex, or any surface that reads `AGENTS.md`. One protocol, zero
+lock-in.
+
+> Vendor-line verification: `metis surface generate` writes CLAUDE.md,
+> AGENTS.md, opencode.json, and .claude/settings.json (internal/surface);
+> AGENTS.md is the convention Codex and other surfaces read; README "Why
+> Meta" states agent-agnosticism. This repository's own ledger pairs
+> claude-code/opus with opencode/gpt-5.6-sol — the claim is demonstrated,
+> not aspirational.
+
 **Install one-liner (mono, beneath the terminal):**
 `curl -fsSL https://raw.githubusercontent.com/techspeque/metis/main/scripts/install.sh | bash`
 
@@ -87,8 +99,13 @@ called the work done
 **Stat 3 — label:** out-of-scope files shipped — file scope is
 machine-audited on every slice
 
-**Caption (with link):** Measured from this repository's own ledger as of
-2026-07-26 — [audit every number](https://github.com/techspeque/metiswww).
+**Stat 4 — value:** `−55%`
+**Stat 4 — label:** est. token spend at best observed — one bounded slice
+at a time replaces session-long re-exploration
+
+**Caption (with link):** Three numbers measured from this repository's own
+ledger as of 2026-07-26; the fourth is a labeled estimate —
+[audit the ledger](https://github.com/techspeque/metiswww).
 
 > Verification notes (ADR-0008 — recompute before approving, re-run before
 > any refresh):
@@ -110,6 +127,19 @@ machine-audited on every slice
 >   via `metis log phase-1-gate --validate -o json` → `ok=true`,
 >   `out_of_scope_files=[]`. No other finding or validation reports an
 >   out-of-scope file.
+> - **−55% (est.):** a labeled estimate under ADR-0008's estimate clause,
+>   NOT ledger-recomputable — which is exactly why the `est.` prefix and
+>   "at best observed" qualifier are part of the rendered label and may
+>   never be dropped. Basis: the product owner's token-usage records from
+>   building this site — comparable feature work run as governed metis
+>   slices vs. ungoverned long sessions showed up to 55% lower token
+>   spend (best case, not a mean). Mechanism, for the skeptical reader:
+>   `metis kickoff` prints the contract instead of the agent re-deriving
+>   it, one-slice dispatch keeps context bounded, and deterministic
+>   tooling replaces exploratory YAML-walking. Reviewer checks: the label
+>   renders with `est.` intact, the figure appears nowhere unlabeled, and
+>   the claim is phrased as spend observed on this project — never as a
+>   CLI behavior or a guarantee.
 
 ## Problem
 
@@ -175,7 +205,8 @@ system gets better because it remembers.
 
 **Lead:** One terminal codes. One terminal reviews. Neither sees the
 other's context — the ledger is the only shared state. Point them at
-different vendors and let the protocol referee.
+different vendors — the pairing is config, not code — and let the
+protocol referee.
 
 **The loop (four steps, alternating terminals):**
 
