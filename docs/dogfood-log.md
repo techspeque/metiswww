@@ -49,3 +49,8 @@ Feeds back into metis hardening. Session: 2026-07-25, metis v0.0.5.
 ## From the gate review cycle 2
 27. No `metis findings resolve <id>` — addressed findings stay "open" forever unless the YAML is hand-edited; the findings ledger accumulates stale entries across cycles
 28. Gate slices' scope audit is explicitly N/A in log --validate — correct, but the protocol should state the reviewer's gate-scope check is manual git inspection
+
+## From the gate fix cycle 2
+29. `metis commit --brief` silently drops `-m` — brief revisions can't carry their why (which finding they resolve) in the subject; either honor -m or reject it
+30. Cross-vendor semantics: THIRD independent report — same-vendor/different-model satisfies routing labeled "cross-vendor"; define vendor at surface level, model level, or rename the policy
+31. Coder has no way to link a commit to the finding it resolves — resolution linkage is prose-only (pairs with #27, findings resolve)
