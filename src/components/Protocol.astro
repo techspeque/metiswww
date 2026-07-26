@@ -368,7 +368,13 @@
      of the diagram to arrive, so the section settles as one gesture rather
      than trailing a straggler. The h2 takes the page rule's 0ms default and
      needs no declaration. Delays are inert custom properties until that
-     rule reads them, so no media query is needed here. */
+     rule reads them, so no media query is needed here.
+
+     560ms is a *delay*, not a duration — the animation itself is the same
+     300ms every other reveal on the page runs, well inside the 200-300ms
+     the plan specifies and ADR-0002's wider 200-700ms envelope. It matches
+     the .loop delay above for the same reason that one is 560ms: it is the
+     last beat of the four-state stagger, not a longer animation. */
   .closing {
     --reveal-delay: 560ms;
   }
