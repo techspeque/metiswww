@@ -1,14 +1,75 @@
 ---
 /**
- * Hero — placeholder section for the Phase-0 skeleton.
- * Phase 1 replaces this with the typed-terminal animation and install
- * one-liner. Carries the page's single h1. Styling consumes tokens only.
+ * Hero — headline, subline, typed-terminal transcript, install one-liner
+ * and the two calls to action.
+ *
+ * Copy is rendered verbatim from docs/copy.md §Hero and §Hero-terminal
+ * (ADR-0003: the copy deck is the single source of truth). The transcript is
+ * genuine `metis next -o json` output from this repository's own ledger and
+ * is reproduced byte-for-byte — it is evidence, not decoration, so it must
+ * not be reflowed, re-indented or "improved".
+ *
+ * The CTA labels carry no arrow: in docs/copy.md the "→" separates the label
+ * from its URL (compare §NotFound, where "← Back to metis" is written inline
+ * because there the arrow IS part of the label).
+ *
+ * Animation (ADR-0002): pure CSS, zero JS. The command line types itself with
+ * steps(), the JSON output then prints a line at a time. Each individual
+ * animation stays inside ADR-0002's 200-700ms envelope; the composed sequence
+ * runs ~2.6s, inside the 2-4s the brief asks for. Nothing loops.
+ *
+ * Reduced motion: every animation property lives inside a
+ * `prefers-reduced-motion: no-preference` block, so the base rules ARE the
+ * final frame. This is deliberate — global.css neutralises animation-duration
+ * under `reduce` but not animation-delay, so an opacity:0 base would leave the
+ * transcript blank for seconds for exactly the users who asked for less motion.
+ *
+ * Note the `{"{"}` / `{"}"}` escapes on the two brace-only transcript lines:
+ * a bare brace opens an Astro expression. They are written as expressions
+ * returning the literal character rather than as HTML entities, so the built
+ * output contains a real "{" and the byte-for-byte grep holds.
  */
 ---
 
 <section id="hero" class="section hero">
-  <h1>metis</h1>
-  <p>The meta-harness that keeps AI coding agents on task.</p>
+  <h1 class="headline">Your agents are brilliant. Their process isn't.</h1>
+
+  <p class="subline">
+    metis is the meta-harness for AI coding agents — deterministic dispatch,
+    scope as a contract, and cross-vendor review, enforced by exit codes
+    instead of hope.
+  </p>
+
+  <figure class="terminal">
+    <pre class="transcript"><code><span class="line cmd">$ metis next -o json</span>
+<span class="line out">{"{"}</span>
+<span class="line out">  "active": true,</span>
+<span class="line out">  "id": "phase-1-ws-1.1",</span>
+<span class="line out">  "title": "Hero with typed-terminal animation",</span>
+<span class="line out">  "risk": "medium",</span>
+<span class="line out">  "role": "Coder",</span>
+<span class="line out">  "agent_slug": "claude-code/opus",</span>
+<span class="line out">  ...</span>
+<span class="line out">{"}"}</span>
+<span class="line out prompt">$ █</span></code></pre>
+    <figcaption>This very page is a slice in metis's own ledger.</figcaption>
+  </figure>
+
+  <pre
+    class="install"><code>curl -fsSL https://raw.githubusercontent.com/techspeque/metis/main/scripts/install.sh | bash</code></pre>
+
+  <p class="ctas">
+    <a class="cta cta--primary" href="https://github.com/techspeque/metis" rel="noopener">
+      View on GitHub
+    </a>
+    <a
+      class="cta cta--secondary"
+      href="https://github.com/techspeque/metis/tree/main/docs"
+      rel="noopener"
+    >
+      Read the docs
+    </a>
+  </p>
 </section>
 
 <style>
@@ -17,9 +78,182 @@
     border-bottom: 1px solid var(--color-border);
   }
 
-  .hero p {
-    margin-block-start: var(--space-3);
+  /* --- Copy ------------------------------------------------------------- */
+  .headline {
+    /* Scales between two type-scale tokens — no raw font sizes. */
+    font-size: clamp(var(--text-2xl), 6vw, var(--text-4xl));
+    max-width: var(--measure);
+  }
+
+  .subline {
+    margin-block-start: var(--space-4);
     font-size: var(--text-lg);
     color: var(--color-muted);
+  }
+
+  /* --- Terminal --------------------------------------------------------- */
+  .terminal {
+    margin-block-start: var(--space-6);
+  }
+
+  .transcript {
+    padding: var(--space-4);
+    font-size: var(--text-sm);
+  }
+
+  /* Each line is its own box so the command can be width-clipped and the
+     output lines can be revealed independently. inline-block keeps the
+     literal newlines between them working as line breaks inside <pre>. */
+  .line {
+    display: inline-block;
+    vertical-align: top;
+  }
+
+  /* The trailing prompt line, owl-gold: this colours the "█" caret that is
+     part of the transcript itself. Contrast (tokens.css table): #D4A24E on
+     surface #171B22 = 7.46:1 dark; #8A5A12 on #FFFFFF ≥ 5.53:1 light. */
+  .prompt {
+    color: var(--color-accent);
+  }
+
+  .terminal figcaption {
+    margin-block-start: var(--space-3);
+    font-size: var(--text-sm);
+    color: var(--color-muted);
+  }
+
+  /* --- Install one-liner ------------------------------------------------ */
+  .install {
+    margin-block-start: var(--space-5);
+    font-size: var(--text-sm);
+  }
+
+  /* --- Calls to action -------------------------------------------------- */
+  .ctas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-block-start: var(--space-5);
+    max-width: none;
+  }
+
+  .cta {
+    padding: var(--space-2) var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    font-weight: var(--weight-medium);
+    text-decoration: none;
+    transition:
+      color var(--duration-fast) var(--ease-out),
+      background-color var(--duration-fast) var(--ease-out),
+      border-color var(--duration-fast) var(--ease-out);
+  }
+
+  /* Accent as a background introduces one new pairing. Contrast is symmetric,
+     so the tokens.css table already covers it: accent #D4A24E / bg #0E1116 =
+     8.17:1 dark, accent #8A5A12 / bg #FAF7F0 = 5.53:1 light. Both AA. */
+  .cta--primary {
+    border-color: var(--color-accent);
+    background-color: var(--color-accent);
+    color: var(--color-bg);
+  }
+
+  /* Hover inverts to the text/background pairing (17.68:1 in both schemes). */
+  .cta--primary:hover {
+    border-color: var(--color-text);
+    background-color: var(--color-text);
+    color: var(--color-bg);
+  }
+
+  .cta--secondary {
+    color: var(--color-text);
+  }
+
+  .cta--secondary:hover {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+  }
+
+  /* --- Typing animation -------------------------------------------------
+     Opt-in only: the rules above render the finished transcript, so users
+     with `prefers-reduced-motion: reduce` (and anyone whose CSS animations
+     never run) see the complete final state with no delay. */
+  @media (prefers-reduced-motion: no-preference) {
+    .cmd {
+      /* "$ metis next -o json" is exactly 20 characters, so 20ch is the
+         finished width and steps(20) lands one character per step.
+         content-box keeps the caret border outside that width — under the
+         global border-box it would eat the last character. */
+      box-sizing: content-box;
+      width: 0;
+      overflow: hidden;
+      border-right: 0.6ch solid var(--color-accent);
+      animation:
+        type 650ms steps(20, end) 350ms forwards,
+        caret-out 200ms var(--ease-out) 1000ms forwards;
+    }
+
+    .out {
+      opacity: 0;
+      animation: emit 220ms var(--ease-out) forwards;
+    }
+
+    /* Output starts once the command has been "entered" (1000ms) and prints
+       a line every 145ms — the last line lands at ~2.6s. Children 2-11 are
+       the ten output lines; child 1 is the command. */
+    .line:nth-child(2) {
+      animation-delay: 1100ms;
+    }
+    .line:nth-child(3) {
+      animation-delay: 1245ms;
+    }
+    .line:nth-child(4) {
+      animation-delay: 1390ms;
+    }
+    .line:nth-child(5) {
+      animation-delay: 1535ms;
+    }
+    .line:nth-child(6) {
+      animation-delay: 1680ms;
+    }
+    .line:nth-child(7) {
+      animation-delay: 1825ms;
+    }
+    .line:nth-child(8) {
+      animation-delay: 1970ms;
+    }
+    .line:nth-child(9) {
+      animation-delay: 2115ms;
+    }
+    .line:nth-child(10) {
+      animation-delay: 2260ms;
+    }
+    .line:nth-child(11) {
+      animation-delay: 2405ms;
+    }
+  }
+
+  @keyframes type {
+    to {
+      width: 20ch;
+    }
+  }
+
+  /* The caret hands off to the "█" on the closing prompt line. */
+  @keyframes caret-out {
+    to {
+      border-right-color: transparent;
+    }
+  }
+
+  @keyframes emit {
+    from {
+      opacity: 0;
+      transform: translateY(var(--space-1));
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
   }
 </style>
