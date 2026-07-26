@@ -1,9 +1,16 @@
 ---
 /**
  * Home page — the single page for v1 (OVERVIEW.md §2.3).
- * Composes the six placeholder section components in order inside one <main>
- * landmark, rendered through Base.astro. Container styling consumes tokens
- * only; section internals are styled by each component's own scoped styles.
+ * Composes the five content sections in order inside one <main> landmark, with
+ * the Footer as a sibling of <main> rather than its last child (ADR-0004: a
+ * footer nested in main never maps to the `contentinfo` landmark; phase 0's
+ * "six components inside one main" criterion is superseded for Footer).
+ *
+ * Rendered through Base.astro. Container styling consumes tokens only; section
+ * internals are styled by each component's own scoped styles. Footer.astro
+ * repeats these container rules for itself — Astro scopes styles to the
+ * elements in their own template, so the `main` rule below cannot reach a
+ * sibling component's root element.
  */
 import Base from "../layouts/Base.astro";
 import Hero from "../components/Hero.astro";
@@ -25,8 +32,8 @@ const description =
     <Personas />
     <Protocol />
     <Install />
-    <Footer />
   </main>
+  <Footer />
 </Base>
 
 <style>

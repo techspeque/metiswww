@@ -125,3 +125,66 @@ external URLs and two commands):
 - Entities: no `&copy;`/`&middot;`/`&mdash;`/`&rarr;` in dist
 - Script count still exactly 1 (Protocol's observer) after editing index.astro
 - Manual: both colour schemes, narrow + wide, at the Install→footer boundary
+
+Results (2026-07-26) — clean build (`rm -rf dist` first), live check in Chrome
+against `astro preview`. Every number below is from the final build.
+
+- `metis verify --post`: ALL GREEN. Built CSS 14,420 bytes (gate limit 50KB);
+  0 `.js`/`.mjs` files in dist, 0 `src=` script refs
+- Copy: §Install and §Footer carry **seven** copy-marked entries, enumerated
+  from the file (`awk '/^## Install/,/^## NotFound/' docs/copy.md |
+  grep -c '^\*\*'`), not from reading. They render as **12 greppable
+  fragments** — the two link-bearing strings split into three each — and all
+  12 were found byte-for-byte in `dist/index.html` (`grep -F` per fragment),
+  including `© 2026 techspeque`. Rendered `textContent` was also read back
+  live and reads as the deck sentences with the markdown stripped:
+  "or go install …@latest, or grab a release." and "Built by AI agents, …
+  ledger. Read the audit trail." No `&copy;`/`&middot;`/`&mdash;`/`&rarr;`
+  and no numeric entities anywhere in dist
+- Landmarks (ordering proof, not a presence grep): `index("</main>")` = 7852
+  < `index("<footer")` = 7859; dist matches both `</main><footer` and
+  `</footer></body>`, so the footer is a direct child of body. Live DOM
+  agrees: `footer.parentElement === document.body` and
+  `compareDocumentPosition` puts it after main. Counts: 1 `<main>`,
+  1 `<footer>`, 1 `<h1>`, 4 `<h2>`, 0 headings inside the footer. Heading
+  sequence h1→h2→h2→h3,h3→h2→h2, unbroken
+- Links: `href="http` appears 8 times and `rel="noopener"` 8 times — equal,
+  which is what the criterion asks (2 Hero CTAs + release + audit trail +
+  4 footer links). All eight targets were fetched: 200 each
+- Script: `<script` still appears exactly 1 time in dist — Protocol's
+  observer, untouched by the index.astro edit
+- Containers: at 1900px the footer's border box (374–1526) is identical to
+  main's, and its text starts at x=398, the same inset as Install's — the
+  duplicated container rules line up rather than merely look close. At a
+  500px viewport both sit at x=24 and `scrollWidth == clientWidth` (no
+  horizontal overflow); the one-liner scrolls inside its own `<pre>`, as the
+  Hero's does
+- Footer link cluster: `role="list"` present, `padding` computes to `0px`
+  from `--space-0`, `list-style: none`. The interpunct is `::after` on
+  `li:not(:last-child)` — **changed during verification**: as a `::before` on
+  the following item it worked at full width but started every wrapped row
+  with a stray leading mark that reads as a bullet (measured at container
+  widths 300/200/120px). Hanging it off the preceding item makes it part of
+  that item's box, so it can only ever end a line. Re-probed at 300/200/120px:
+  every wrapped row now begins with a clean label at the container edge, the
+  last item has no separator, and the list never overflows
+- Colours, read from computed styles, both schemes. Dark: colophon /
+  copyright / alternatives `#A7ADB8` on `#0E1116` (8.39:1), links and the
+  release link `#D4A24E` on `#0E1116` (8.17:1), verification line `#FAF7F0`
+  (17.68:1), `<pre>` surface `#171B22`. Light (tokens.css's light values
+  applied to `:root`, as in 1.3 — this exercises the component's token use,
+  not the media query, which belongs to tokens.css): muted `#5C636E` on
+  `#FAF7F0` (5.66:1), accent `#8A5A12` (5.53:1), text `#0E1116` (17.68:1),
+  surface `#FFFFFF`. All AA, all already in tokens.css's ratio table
+- Install→footer boundary checked live in both schemes at 1440px and 500px:
+  Install is the last child of main, its hairline reads as the rule above the
+  footer rather than as a stray underline
+
+Deferred deliberately, for the reviewer to weigh rather than for me to decide
+silently: the interpunct is decorative generated content, and some screen
+readers announce it between the link labels. CSS `content: "·" / ""` would
+give it empty alt text, but its support floor (Firefox 118, Safari 17.4) is
+higher than anything else this project relies on, and an unsupported
+declaration drops the mark entirely — the same class of degradation f-004
+already parked for phase 2. Left as plain `content` here; worth deciding
+alongside f-004 in ws-2.2 rather than in a low-risk slice.
