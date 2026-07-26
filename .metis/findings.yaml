@@ -63,4 +63,5 @@ findings:
       severity: P2
       category: protocol
       finding: Phase gate copy audit fails its declared criterion. .metis/plans/phase-1.md:139-141 requires every rendered string to be traceable to docs/copy.md, and ADR-0003 pins docs/copy.md as the copy source, but src/pages/index.astro:23-25 authors the rendered title and meta description outside that deck. The gate brief itself says this criterion is 'not literally met' while still returning PASS. Add the title and description verbatim to a Meta section in docs/copy.md (or formally amend the governing requirement through planning), then rerun the gate evidence and review.
-      status: open
+      status: resolved
+      resolved_by: 'Verified in 5c7bdb6: docs/copy.md:10-31 now contains the Meta title and description matching src/pages/index.astro:23-25; metis verify --post is green.'
