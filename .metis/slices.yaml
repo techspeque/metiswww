@@ -1,19 +1,5 @@
 version: 1
 slices:
-    - id: phase-1-ws-1.4
-      title: Install, Footer, and landmark amendment
-      type: feat
-      priority: p2
-      risk: low
-      stage: sections
-      coder: claude-code/opus
-      reviewer: opencode/gpt-5.6-sol
-      plan: .metis/plans/phase-1.md
-      plan_section: §1.4
-      coded: true
-      reviewed: true
-      review_cycles: 0
-      created: ""
     - id: phase-1-gate
       title: 'Phase 1 gate: composed-system validation'
       type: gate
@@ -26,8 +12,6 @@ slices:
       coded: false
       reviewed: false
       review_cycles: 0
-      blocked_by:
-        - phase-1-ws-1.4
       created: ""
     - id: phase-2-ws-2.1
       title: Section reveals via the shared observer
