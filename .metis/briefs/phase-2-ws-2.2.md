@@ -127,19 +127,48 @@ discover:
   The same absolute URL was already in the built HTML as `og:url`, as a
   `<meta>`, for exactly the same non-resource reason.
 - The refined grep, which the phase-2 gate should use in place of the
-  phase-0 one, is: match as before, then require every hit to be the
-  canonical link —
-  `grep -En '<(script|link)[^>]*(src|href)="http' dist/index.html | grep -v 'rel="canonical"'`
-  → **no output** (verified below). The invariant that actually binds —
-  zero external-origin *resource* references, zero external requests — is
-  unchanged and still mechanically checkable.
-- Side effect for **phase-2-ws-2.3**: the canonical is no longer a
-  root-absolute path, so it leaves that slice's base-path burden entirely.
-  Plan §2.3 lists it among the hrefs needing `base` handling
-  (.metis/plans/phase-2.md:201) — after this slice, fonts and favicons are
-  the remaining ones. §2.3's own acceptance grep (line 210, root-absolute
-  paths not starting with `/metiswww/`) is unaffected: an
-  `https://` href is not a root-absolute path.
+  phase-0 one, must be **tag-scoped, not line-scoped**:
+
+  ```
+  grep -oE '<(script|link)[^>]*(src|href)="http[^"]*"' dist/index.html | grep -v 'rel="canonical"'
+  ```
+
+  → **no output**; unfiltered it returns exactly one hit, the canonical
+  link. The `-o` matters and is not style: `dist/index.html` is 16 lines,
+  and the canonical, the theme script and the stylesheet `<link>` all sit
+  on line 3. A line-scoped `grep -En … | grep -v 'rel="canonical"'` would
+  drop that entire line, and with it a genuine external-origin stylesheet
+  if one ever appeared there. The invariant that actually binds — zero
+  external-origin *resource* references, zero external requests — is
+  unchanged and still mechanically checkable, but only in this form.
+- Note for **phase-2-ws-2.3** — a latent defect this slice found but does
+  not own. Both absolute URLs are built as `SITE.url + Astro.url.pathname`.
+  With no `base` set, `pathname` is `/` and the result is right. The
+  moment 2.3 sets `base: "/metiswww"`, `pathname` becomes `/metiswww/` and
+  the concatenation **double-counts the project path**. Measured, not
+  predicted — a copy of this repo in the session scratchpad with only
+  `base: "/metiswww"` added to `astro.config.mjs` builds:
+
+  ```
+  <link rel="canonical" href="https://techspeque.github.io/metiswww/metiswww/">
+  <meta property="og:url" content="https://techspeque.github.io/metiswww/metiswww/">
+  ```
+
+  This is **pre-existing**, not introduced here: `og:url` has used the same
+  expression since phase-0-ws-0.2, and the old root-relative canonical
+  derived from the same `pageUrl` would have broken identically. What
+  changed is only that the canonical now shares the fault visibly. It is
+  not fixed here because the fix belongs with the config change that
+  triggers it: `astro.config.mjs` is outside this slice's scope, and the
+  correct repair (Astro's `site` + `base`, or stripping
+  `import.meta.env.BASE_URL` before concatenating) is one edit in 2.3's
+  hands rather than speculative logic written here against a config that
+  does not exist yet. Plan §2.3 already lists the canonical among the
+  base-sensitive hrefs (.metis/plans/phase-2.md:201) — this note tells that
+  slice that **`og:url` belongs on the same list**, and that the failure
+  mode is duplication rather than a missing prefix. §2.3's acceptance grep
+  (line 210, root-absolute paths not starting with `/metiswww/`) is
+  unaffected either way: an `https://` href is not a root-absolute path.
 
 `SITE.url` and `astro.config.mjs` were **not** touched — the URL string
 was already correct and already computed in the file; only which of the
@@ -203,6 +232,16 @@ Two advisory findings that touch files outside this scope remain open and
 are **not** this slice's to fix: f-008 (a wrong ratio in `tokens.css`'s
 documentation comment — `read_only` here) and f-013 (a copy-deck line in
 `docs/copy.md` — ADR-0003 makes the deck the only place it may change).
+
+**For the reviewer, two ledger edits this slice deliberately did not make**
+(`.metis/findings.yaml` is not a declared path here, and closing findings
+is the Reviewer's own step):
+
+- **f-006** is now stale. Its `resolved_by` reads "remains reproducible and
+  is deferred to phase-2-ws-2.2" — as of this commit it is no longer
+  reproducible; the re-measurement is in "f-006 — fixed and re-measured".
+- **f-004** was answered with the recorded acceptance decision above, so it
+  can be closed as accepted rather than left advisory.
 
 ## Final measurement (after the changes)
 
@@ -309,7 +348,7 @@ what the first table measures.
 | Landmarks | 1 `<main>`, 1 `<footer>`, 3 `role="list"` — unchanged (ADR-0004 shape) |
 | Built CSS ≤ 50 KB | **21,070 B** on disk, 4,274 B transferred |
 | Total transfer excl. fonts < 150 KB | **10.8 KB** (74.1 KB including both fonts) |
-| External-origin *resource* refs | none — refined grep (canonical excluded) returns no output |
+| External-origin *resource* refs | none — the tag-scoped grep above (canonical excluded) returns no output |
 | `npm run verify` | exit 0, green |
 
 ### Reduced motion and no-JS
