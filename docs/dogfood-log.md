@@ -41,3 +41,7 @@ Feeds back into metis hardening. Session: 2026-07-25, metis v0.0.5.
 ## From the phase-0-gate coder session
 23. `metis brief --write` emits the generic code-slice template for gate slices — the gate.md template exists but isn't selected by slice type (brief.Render has a gate branch; investigate why the generic body appeared)
 24. `verify --post` semantics awkward for gates (no product code changed) — flip precondition forces a re-run that validates nothing new; gate-type slices may deserve a different precondition (evidence report exists?)
+
+## From the gate fix cycle
+25. `metis commit -m` prefix doubling RECURRING (second occurrence, see #9) — and the doubled subject passes metis's own format check, so nothing flags it; commit should detect/strip an already-present prefix
+26. No re-flip affordance — post-flip content edits leave the flip mid-history; either guidance ("finalize before flipping") or a re-flip path
