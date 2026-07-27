@@ -10,7 +10,8 @@ created: 2026-07-27
 # Phase 3 — Hero & colophon copy corrections
 
 > Derived from: OVERVIEW.md §4 (Phase 3), product-owner direction 2026-07-27
-> Produces: slice phase-3-ws-3.1 + phase-3-gate in .metis/slices.yaml
+> Produces: slice phase-3-ws-3.1 in .metis/slices.yaml (gate waived — see
+>          Phase Gate section)
 > ADRs: none new — executes under ADR-0003 (deck is the copy source),
 >       ADR-0009 (proof values are Human-owned), ADR-0005/0007 (script
 >       budget), ADR-0004 (landmarks)
@@ -100,23 +101,9 @@ Acceptance criteria:
 
 ## Phase Gate
 
-> This section defines how Phase 3 is validated as a composed system.
-> It becomes a `gate` slice automatically (phase-3-gate, blocked by 3.1).
-
-Composition scenarios to validate:
-- [ ] Copy audit of the built page against the amended deck: hero caption,
-      proof caption, colophon each grep byte-for-byte; the retired kicker
-      text and the hero install one-liner are absent; the install command
-      appears exactly once page-wide
-- [ ] Both .metis audit links fetched over the network: HTTP 200, and the
-      landing view shows the ledger files (slices-done.yaml, findings.yaml)
-- [ ] Script policy re-grep (ADR-0007): exactly two inline scripts — theme
-      (head, ≤ 768 bytes) + observer (contains "IntersectionObserver",
-      ≤ 1024 bytes)
-- [ ] Accessibility spot-check on the built page: Lighthouse accessibility
-      ≥ 95 (guards the aria-labelledby rewiring); reduced-motion and no-JS
-      renders complete
-
-Performance / resource checks:
-- [ ] Built CSS ≤ 50KB (should shrink — dead .install rules removed);
-      total transfer budget unchanged (< 150KB excluding fonts)
+> WAIVED 2026-07-27 by product-owner direction: Phase 3 is a hotfix phase
+> and does not warrant a composed-system gate. The gate slice seeded from
+> the original version of this section (phase-3-gate) was retired via
+> `metis skip`. Its composition checks — deck copy audit, live-link fetch,
+> script-policy re-grep, accessibility spot-check, CSS budget — are already
+> subsumed by workstream 3.1's acceptance criteria and `npm run verify`.
