@@ -122,3 +122,11 @@ findings:
       category: maint
       finding: .metis/briefs/phase-2-ws-2.3.md:453-455 says the workflow cannot be executed from dev and triggers on main only. workflow_dispatch can still create a dev-ref workflow run; the two job guards correctly skip all work and prevent deployment. This does not affect behavior or acceptance, but future documentation should say that no jobs execute and dev cannot deploy rather than that no dev trigger occurs.
       status: advisory
+    - id: f-017
+      date: "2026-07-27"
+      slice: phase-3-ws-3.1
+      severity: P2
+      category: scope
+      finding: 'metis log phase-3-ws-3.1 --validate fails: slice-tagged commit 530ab98 modifies OVERVIEW.md and docs/copy.md outside the brief''s owned_paths. Reviewer protocol requires a clean scope audit; the planning/ledger attribution must be corrected by the Human before review can pass.'
+      status: resolved
+      resolved_by: 'Resolved by product-owner override in 82e6f11: brief owned_paths now include OVERVIEW.md and docs/copy.md; metis log phase-3-ws-3.1 --validate passes.'
