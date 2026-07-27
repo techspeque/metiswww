@@ -1,7 +1,12 @@
 ---
 /**
  * Hero — headline, subline, vendor line, typed-terminal transcript, the
- * ledger proof strip, install one-liner and the two calls to action.
+ * ledger proof strip and the two calls to action.
+ *
+ * The hero carried a copy of §Install's `curl … | bash` one-liner until
+ * phase-3-ws-3.1 removed it: it repeated that block verbatim one screen
+ * below, so the command now renders exactly once on the page, in §Install.
+ * Install.astro owns its styling; nothing here should reintroduce it.
  *
  * Copy is rendered verbatim from docs/copy.md §Hero, §Hero-terminal and
  * §Proof (ADR-0003: the copy deck is the single source of truth). The
@@ -66,9 +71,18 @@
  *
  * Placement: immediately after the terminal figure, because §Proof says
  * "beneath the terminal caption" and the caption is the figure's last child.
- * §Hero separately calls the install one-liner "beneath the terminal", so the
- * two instructions read as a sequence — terminal, then strip, then install —
- * and the strip lands between them rather than after the CTAs.
+ * With the hero's install block retired the strip now runs straight into the
+ * CTAs, which is the order the deck reads in: caption, numbers, then the two
+ * links out.
+ *
+ * Accessible name (phase-3-ws-3.1): the strip's kicker <p> is gone — the deck
+ * compacted it into the §Hero-terminal caption, which now ends in a colon
+ * because it INTRODUCES the numbers. The stats <dl> named itself from that
+ * kicker, so the wiring moved rather than dangled: the figcaption carries
+ * `id="proof-intro"` and the <dl>'s `aria-labelledby` points at it. The IDREF
+ * crosses out of the <figure> into .proof, which ARIA permits — the caption's
+ * sentence is the right name for the list it introduces, and duplicating it
+ * into an aria-label would be a second copy of deck text to drift.
  *
  * `−55%` opens with U+2212 MINUS SIGN, not a hyphen-minus, matching the deck
  * byte-for-byte.
@@ -138,13 +152,11 @@
 <span class="line out">  ...</span>
 <span class="line out">{"}"}</span>
 <span class="line out prompt">$ █</span></code></pre>
-    <figcaption>This very page is a slice in metis's own ledger.</figcaption>
+    <figcaption id="proof-intro">This very page is a slice in metis's own ledger, built under its own protocol, where the numbers tell the real story:</figcaption>
   </figure>
 
   <div class="proof">
-    <p class="kicker" id="proof-kicker">Dogfood numbers — this site, built under its own protocol</p>
-
-    <dl class="stats" aria-labelledby="proof-kicker">
+    <dl class="stats" aria-labelledby="proof-intro">
       <div class="stat">
         <dt>9/9</dt>
         <dd>slices independently reviewed — never by their author</dd>
@@ -167,12 +179,9 @@
     </dl>
 
     <p class="proof-caption">Three numbers measured from this repository's own ledger as of 2026-07-26; the fourth is a labeled estimate — <a
-        href="https://github.com/techspeque/metiswww"
+        href="https://github.com/techspeque/metiswww/tree/main/.metis"
         rel="noopener">audit the ledger</a>.</p>
   </div>
-
-  <pre
-    class="install"><code>curl -fsSL https://raw.githubusercontent.com/techspeque/metis/main/scripts/install.sh | bash</code></pre>
 
   <p class="ctas">
     <a class="cta cta--primary" href="https://github.com/techspeque/metis" rel="noopener">
@@ -252,23 +261,20 @@
     margin-block-start: var(--space-6);
   }
 
-  /* Muted on background, 8.39:1 dark / 5.66:1 light — AA. */
-  .kicker {
-    font-size: var(--text-sm);
-    color: var(--color-muted);
-  }
-
   /* The rules above and below turn the four numbers into one horizontal band
      — a ledger row rather than four loose figures. They are the strip's only
      ornament: --color-border is the same decorative 1.40:1 hairline the
      terminal and the persona columns use, carrying no information (the <dl>
      structure does that), so it has no contrast obligation.
 
-     Mobile-first: one column, no vertical dividers, no media query. */
+     Mobile-first: one column, no vertical dividers, no media query.
+
+     No margin-block-start: with the kicker retired the list is .proof's first
+     child, so its own top margin would collapse into .proof's --space-6 and do
+     nothing. The gap to the caption above is .proof's margin, single-sourced. */
   .stats {
     display: grid;
     gap: var(--space-4);
-    margin-block-start: var(--space-3);
     padding-block: var(--space-4);
     border-block: 1px solid var(--color-border);
   }
@@ -373,12 +379,6 @@
     margin-block-start: var(--space-4);
     font-size: var(--text-sm);
     color: var(--color-muted);
-  }
-
-  /* --- Install one-liner ------------------------------------------------ */
-  .install {
-    margin-block-start: var(--space-5);
-    font-size: var(--text-sm);
   }
 
   /* --- Calls to action -------------------------------------------------- */
