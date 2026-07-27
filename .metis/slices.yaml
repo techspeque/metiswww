@@ -10,9 +10,9 @@ slices:
       reviewer: opencode/gpt-5.6-sol
       plan: .metis/plans/phase-3.md
       plan_section: §3.1
-      coded: true
+      coded: false
       reviewed: false
-      review_cycles: 0
+      review_cycles: 1
       created: ""
     - id: phase-3-gate
       title: 'Phase 3 gate: composed-system validation'
