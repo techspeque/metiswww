@@ -2,7 +2,7 @@
 type: overview
 project: metiswww
 status: living
-last_updated: 2026-07-26
+last_updated: 2026-07-27
 ---
 
 # metiswww — Full Specification
@@ -148,7 +148,7 @@ Design tokens, base layout/fonts/meta, page skeleton. Four slices, all
 reviewed and archived; gate passed on review cycle 3. Decisions recorded in
 ADR-0001; the footer-landmark trade-off is amended by ADR-0004 in Phase 1.
 
-### Phase 1 — Sections — PLANNED (.metis/plans/phase-1.md, seeded)
+### Phase 1 — Sections — COMPLETE (2026-07-26)
 The real content, one component-group per slice: Hero (typed terminal +
 install one-liner), Problem/Insight, Personas split, Protocol lifecycle
 diagram (the one permitted script, ADR-0002), Install + Footer with the
@@ -156,7 +156,7 @@ ADR-0004 landmark amendment. All copy renders verbatim from docs/copy.md
 (ADR-0003); briefs are pre-authored in .metis/briefs/. Coder:
 claude-code/opus; reviewer: opencode/gpt-5.6-sol (genuinely cross-vendor).
 
-### Phase 2 — Polish & Ship — PLANNED (.metis/plans/phase-2.md, seeded)
+### Phase 2 — Polish & Ship — COMPLETE (2026-07-27)
 Section reveals under the one-script policy (ADR-0005), Lighthouse ≥95
 across all categories, GitHub Pages pipeline with base-path handling
 (ADR-0006), and the 404 page (copy: docs/copy.md §NotFound). Briefs
@@ -170,6 +170,18 @@ the manual theme toggle (2.6, ADR-0007) — so 2.2 and the gate audit the
 finished UI, not a moving target. Execution order:
 2.1 → 2.4 → 2.5 → 2.6 → 2.2 → 2.3 → gate (ids 2.2/2.3 predate the
 amendment; ordering is enforced by `blocked_by`, not numbering).
+Gate passed; dev merged to main (PR #1) and the site is live.
+
+### Phase 3 — Copy corrections — PLANNED (.metis/plans/phase-3.md)
+Product-owner-directed fixes to the live page, deliberately ONE slice
+(four tightly-coupled copy edits; splitting them would be ledger overhead
+without review value): the hero terminal caption and proof kicker compact
+into a single sentence introducing the stats strip; the hero's duplicate
+install one-liner is removed (it repeats §Install verbatim); and both
+audit-trail links — "audit the ledger" (§Proof caption) and "Read the
+audit trail" (colophon) — retarget to the ledger directory itself,
+github.com/techspeque/metiswww/tree/main/.metis. Deck amended at planning
+per ADR-0003; stat values untouched per ADR-0009.
 
 ---
 

@@ -50,8 +50,9 @@ lock-in.
 > claude-code/opus with opencode/gpt-5.6-sol — the claim is demonstrated,
 > not aspirational.
 
-**Install one-liner (mono, beneath the terminal):**
-`curl -fsSL https://raw.githubusercontent.com/techspeque/metis/main/scripts/install.sh | bash`
+> Install one-liner retired from the hero (phase-3-ws-3.1): it duplicated
+> §Install's one-liner verbatim, one screen below. The command now renders
+> exactly once on the page, in §Install.
 
 **Primary CTA:** View on GitHub → https://github.com/techspeque/metis
 **Secondary CTA:** Read the docs → https://github.com/techspeque/metis/tree/main/docs
@@ -75,7 +76,12 @@ $ metis next -o json
 $ █
 ```
 
-**Terminal caption:** This very page is a slice in metis's own ledger.
+**Terminal caption:** This very page is a slice in metis's own ledger, built
+under its own protocol, where the numbers tell the real story:
+
+> Rewritten by phase-3-ws-3.1: the caption absorbed the §Proof kicker
+> ("built under its own protocol") and now ends in a colon — it is the
+> sentence that introduces the stats strip directly below the terminal.
 
 ## Proof (hero stats strip)
 
@@ -90,8 +96,11 @@ $ █
 > per ADR-0008; its prefix and "at best observed" qualifier may not be
 > dropped.
 
-**Kicker (small, above the stats):** Dogfood numbers — this site, built
-under its own protocol
+> Kicker retired (phase-3-ws-3.1). It read "Dogfood numbers — this site,
+> built under its own protocol" and was compacted into the §Hero-terminal
+> caption, which now introduces the strip. No kicker renders; the stats
+> list's accessible name moves to the caption (wiring recorded in the
+> brief).
 
 **Stat 1 — value:** `9/9`
 **Stat 1 — label:** slices independently reviewed — never by their author
@@ -110,7 +119,11 @@ at a time replaces session-long re-exploration
 
 **Caption (with link):** Three numbers measured from this repository's own
 ledger as of 2026-07-26; the fourth is a labeled estimate —
-[audit the ledger](https://github.com/techspeque/metiswww).
+[audit the ledger](https://github.com/techspeque/metiswww/tree/main/.metis).
+
+> Link retargeted by phase-3-ws-3.1: it now lands on the ledger directory
+> itself (.metis/ on main — slices, findings, briefs, runs) rather than the
+> repository root, so "audit the ledger" opens the ledger.
 
 > Verification notes. Under ADR-0008 these bound the reviewer, who had to
 > recompute each number before approving. ADR-0009 withdraws that: the values
@@ -274,7 +287,10 @@ or grab a [release](https://github.com/techspeque/metis/releases).
 
 **Colophon:** Built by AI agents, governed by metis — every section of this
 page was planned, coded, and cross-vendor reviewed as a slice in its own
-ledger. [Read the audit trail](https://github.com/techspeque/metiswww).
+ledger. [Read the audit trail](https://github.com/techspeque/metiswww/tree/main/.metis).
+
+> Link retargeted by phase-3-ws-3.1, same reasoning as §Proof's caption
+> link: the audit trail IS the .metis directory, so the anchor lands there.
 
 **Links:** GitHub · Docs · Releases · MIT License
 
