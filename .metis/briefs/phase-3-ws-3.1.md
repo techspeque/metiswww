@@ -46,11 +46,24 @@ removed, and both audit-trail links retargeted to the ledger directory
 
 ## Declared file scope
 
+> **Widened 2026-07-27 by product-owner override.** OVERVIEW.md and
+> docs/copy.md moved into owned_paths after implementation. Both were
+> touched by the planning commit (530ab98), which carries this slice's ID
+> because the deck amendment and the slice were authored in the same cycle
+> — the scope audit therefore attributed planning work to the coder and
+> returned FAIL. The Human owns scope conflicts; the call is that this
+> slice's declared scope should cover the planning edits made under its ID
+> rather than that the ledger be rewritten. docs/copy.md consequently
+> leaves read_only_paths. This does not license a coder to edit the deck:
+> ADR-0003 still puts copy in docs/copy.md first, as a planning act, and
+> the implementation commit (2f9f894) touched neither file.
+
 - **owned_paths:**
   - src/components/Hero.astro
   - src/components/Footer.astro
-- **read_only_paths:**
   - docs/copy.md
+  - OVERVIEW.md
+- **read_only_paths:**
   - src/styles/tokens.css
   - src/components/Install.astro
 
@@ -94,14 +107,19 @@ removed, and both audit-trail links retargeted to the ledger directory
 ## Out-of-scope touches
 
 None by the coder. The implementation commit (2f9f894) touches exactly the
-two owned_paths and nothing else. docs/copy.md stayed read-only by design:
-the deck edit was the planning act and was already committed. Install.astro
-was read-only as the reference for the single surviving install one-liner.
+two source files it set out to change — Hero.astro and Footer.astro — and
+nothing else. The deck was not edited during implementation: it was already
+correct, because amending it was the planning act. Install.astro stayed
+read-only as the reference for the single surviving install one-liner.
 
-**`metis log phase-3-ws-3.1 --validate` reports FAIL — expected, and not a
-coder touch.** Both named files come from ONE commit, the first in the
-audit, and it is the planning commit. The validator ignores `.metis/`
-ledger paths, so the brief and flip commits add nothing to the list:
+**Scope-audit history.** `metis log phase-3-ws-3.1 --validate` returned
+FAIL at coder handoff, naming OVERVIEW.md and docs/copy.md. Both came from
+ONE commit — the planning commit — and the product-owner override recorded
+under "Declared file scope" above resolves it by widening owned_paths to
+cover them. The audit is green from that point on. The commit breakdown,
+kept because it is what the override was decided on (the validator ignores
+`.metis/` ledger paths, so the brief and flip commits never appeared in the
+list):
 
 - `530ab98 chore(phase-3-ws-3.1): docs and copy updates` — the PLANNING
   commit, authored before this slice was seeded (the seed is 89c3bf7). It
@@ -112,19 +130,12 @@ ledger paths, so the brief and flip commits add nothing to the list:
   that declares owned_paths, so no scope contract existed for it to break.
   It carries the slice-ID prefix, which is the only reason it lands in this
   slice's audit at all.
-- `2f9f894 feat(…)` — the implementation. Two files, both owned.
-- `50e6a9b chore(…): flip coded` and `eb66f06 docs(…): slice brief` —
-  ledger only, and not counted by the scope audit.
+- `2f9f894 feat(…)` — the implementation. Hero.astro and Footer.astro only.
+- `50e6a9b chore(…): flip coded` and the brief commits — ledger only, and
+  not counted by the scope audit.
 
-Reviewer: confirm the split with `git show --stat 530ab98` and
-`git show --stat 2f9f894` before reading the FAIL as a scope breach. The
-verdict to check is that no SOURCE file outside owned_paths was modified by
-the implementation, which holds.
-
-**This still leaves the audit red, and the brief cannot change that.** The
-reviewer's contract says FAIL → block; an explanation here does not alter
-an exit code. The FAIL is a ledger artifact — the planning commit was given
-this slice's ID before the slice existed — and under "scope differs
-materially from the plan → stop and report" it is the Human's call, not the
-reviewer's, whether to waive it or correct the ledger. Reported to the
-Human at coder handoff (2026-07-27).
+Reviewer: the audit now passes, but the split is still worth confirming
+with `git show --stat 530ab98` and `git show --stat 2f9f894`. What the
+widened scope must NOT be read to mean is that the coder edited the deck —
+the implementation commit touches neither OVERVIEW.md nor docs/copy.md, and
+the §Proof stat values remain untouched per ADR-0009.
