@@ -23,9 +23,10 @@ slices:
       reviewer: opencode/gpt-5.6-sol
       plan: .metis/plans/phase-3.md
       plan_section: Phase Gate
-      coded: false
-      reviewed: false
+      coded: true
+      reviewed: true
       review_cycles: 0
       blocked_by:
         - phase-3-ws-3.1
+      notes: 'skipped: Hotfix phase: product owner waived the phase gate; composition checks are already covered by phase-3-ws-3.1 acceptance criteria'
       created: ""
